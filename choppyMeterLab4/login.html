@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Login - Step 1</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha3/0.8.0/sha3.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #667eea;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+            display: block;
+        }
+
+        .message.success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+            display: block;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid rgba(102, 126, 234, 0.2);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .security-features {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .security-features h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .security-items {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+        }
+
+        .security-item {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .security-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🔐 Secure Login</h1>
+            <p>Step 1 of 2: Authentication</p>
+            <div class="security-badge">
+                🛡️ SHA3 Encrypted
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" autocomplete="username" required
+                    placeholder="Enter your username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="text" id="password" name="password" autocomplete="current-password" required
+                    placeholder="Enter your password">
+            </div>
+
+            <button type="submit" class="btn-login" id="loginBtn">
+                Continue to Step 2 →
+            </button>
+        </form>
+
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #667eea; font-size: 14px;">Authenticating...</p>
+        </div>
+
+        <div class="security-features">
+            <h3>🔒 Security Features</h3>
+            <div class="security-items">
+                <div class="security-item">
+                    <div class="security-icon">🔐</div>
+                    <div>SHA3 Hash</div>
+                </div>
+                <div class="security-item">
+                    <div class="security-icon">🎫</div>
+                    <div>JWT Token</div>
+                </div>
+                <div class="security-item">
+                    <div class="security-icon">🍪</div>
+                    <div>HttpOnly</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/jsB.js"></script>
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const messageDiv = document.getElementById('message');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showMessage('Please enter both username and password', 'error');
+                return;
+            }
+
+            // Disable button and show loading
+            loginBtn.disabled = true;
+            loadingSpinner.classList.add('active');
+            messageDiv.style.display = 'none';
+
+            try {
+                // Hash password with SHA3
+                const hashedPassword = sha3_512(password);
+
+                // Send to PHP for verification
+                const response = await fetch('https://thepapers.in/Rust/choppyMeterLab4/checkusersha3.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include', // Important for HttpOnly cookies
+                    body: JSON.stringify({
+                        username: username,
+                        password: hashedPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Verify JWT token
+                    if (data.jwt && data.hash) {
+                        // Verify that the JWT hash matches
+                        const jwtHash = sha3_512(data.jwt);
+
+                        if (jwtHash === data.hash) {
+                            // Store JWT in sessionStorage (not localStorage for security)
+                            sessionStorage.setItem('auth_jwt', data.jwt);
+                            sessionStorage.setItem('username', username);
+
+                            showMessage('Login successful! Redirecting to Step 2...', 'success');
+
+                            // Redirect to Step 2 after 1 second
+                            setTimeout(() => {
+                                window.location.href = 'login2.html';
+                            }, 1000);
+                        } else {
+                            showMessage('Security verification failed. Please try again.', 'error');
+                            loginBtn.disabled = false;
+                        }
+                    } else {
+                        showMessage('Invalid response from server', 'error');
+                        loginBtn.disabled = false;
+                    }
+                } else {
+                    showMessage(data.message || 'Invalid username or password', 'error');
+                    loginBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage('Connection error. Please check your internet connection.', 'error');
+                loginBtn.disabled = false;
+            } finally {
+                loadingSpinner.classList.remove('active');
+            }
+        });
+
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+        }
+
+        // Clear any existing session on page load
+        if (!sessionStorage.getItem('from_logout')) {
+            sessionStorage.clear();
+        }
+        sessionStorage.removeItem('from_logout');
+    </script>
+</body>
+
+</html>
