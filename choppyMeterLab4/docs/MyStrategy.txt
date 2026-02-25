@@ -1,0 +1,58 @@
+สรุป Indicator ที่มี 
+ 1.ema,hma,ehma
+ 2.macd,bb,rsi,atr,stoch
+ 3.FVG,Order Block
+ 4.MicroIndy 
+
+รวม  3+5+2+1 = 11 Indicator 
+
+การเทรด จะมี แบบ 
+ 1.Long Term จะใช้ Fix MoneyTrade จำนวน 10 ตั้ง Profit 10-30%
+   กลยุทธ์ที่ใช้ 
+    - ดู emaLong เป็นหลัก
+    - ควรจะเลือก TF 30 นาที มาดูว่า แท่ง ต่อไป จะเป็น Red หรือ Green
+    - ดู CI ของ TF 30 นาที เพื่อ ยืนยัน
+    - เมื่อเข้าเทรด ให้ ดูทางซ้าย ว่าจะเจอ แนวรับ หรือ แนวต้าน อะไรบ้าง ควรจะ ใช้ indy กลุ่ม 3 (FVG+ORDER BLOCK)เพื่อดูจุดนี้ 
+    - ใช้ MicroIndy เข้ามาเสริม เพื่อช้วย ตัดสินใจ
+ 2.Short Term 
+    - เลือกจาก CI เป็นหลัก
+    - สร้างข้อมูล analysisData
+    - get Action Method
+       1.ดูจาก meduim+long direction ต้อง สอดคล้องกัน ถ้าไม่สอดคล้องกัน มักจะเกิด สภาวะ Lag ควร Idle
+       2.ใช้ candleCode ผลจาก Lab Candle Code ใน https://thepapers.in/choppyLabV3/choppyIndyV32.html
+       ที่  TF สูงๆ เช่น 15 นาที จะ ควบคุม Loss Con ได้ดี 
+       3.ใช้ MicroIndy เข้ามาเสริม เพื่อช้วย ตัดสินใจ
+       4.ใช้ แนวรับ แนวต้าน มาช่วยในการ ตัดสินใจ เพื่อดูจุด กลับตัว 
+       5.ใช้ atr มา ดูว่า เป็นแท่ง Abnormal หรือไม่  เพื่อตัดสินใจ ใน แท่งต่อไป โดยทั่วไป มีดังนี้ 
+         5.1 มักจะเปลี่ยนสี เป็นตรงข้าม ใน แท่งถัดไป 
+	 5.2 ถ้าคงสี เดิม ก็มักจะมี แรงไปต่อ อีก 1-2 แท่ง แล้ว เปลี่ยน Trend
+3.เข้าไปศึกษา FVG+Order Block เพื่อหา กลยุทธ์เพิ่มเติม จาก  TradeX Channel
+   1. https://www.youtube.com/watch?v=Qf1Q8tBJi-k
+   2. https://www.youtube.com/watch?v=dahCAFLxnA4
+   
+
+4.สร้่าง หน้า AutoTrade.html มี รายการดังนี้ 
+   1.asset List สามารถเลือกได้เอง หรือ  ให้เลือกจาก choppy Indicator 
+   โดย ทำการ คำนวณหา choppyIndicator Meter แบบ Auto แล้ว นำไปปรับค่าตัวแปร ใน rust assetSortedByChoppy 
+   2.Radio ให้เลือกว่า จะ fix หรือ ปรับเปลี่ยนตาม choppyIndicator กรณี ที่ ปรับเปลีย่น ตาม choppy Indicator ให้ทำการ
+   หา ci ของ ทุกตัว ทุกๆ วินาที ที่ 50
+   3.Action Plan List
+      3.1 simple  Plan
+      3.2 cutType
+      3.3 By Candle Code ตรงนี้ จะให้มี action code ที่เลือกจาก 3 กลุ่ม
+          - กลุ่ม PUT จะมี textbox ซึ่งเป็น รายการ candleCode ในรูปแบบ 3,10,15
+	  - กลุ่ม CALL จะมี textbox ซึ่งเป็น รายการ candleCode ในรูปแบบ 3,10,15
+	  ถ้าไม่อยู่ใน 2 กลุ่ม ก็จะให้ Idle
+   4.Money Trade Type เป็น radio
+      - Fixed Money
+      - Martingale จะมี text box แสดง martinGale แต่ให้แก้ไขได้ 
+   5.TimeFrame 55Sec,3,5,10,15,30,60 Minute
+   6.การหบุดเทรด เมื่อ ได้ Target ตามเป้าหมาย  แบ่งเป็น 2 แบบ 
+      - แบบ ยอดเงิน Balanceในการเทรดครั้งนี้ ครบตามเป้าที่ตั้งไว้ 
+      - แบบ เทรดไปเรื่อยๆ จนครบเวลา 
+
+
+
+
+   
+      
