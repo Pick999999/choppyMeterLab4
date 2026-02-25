@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deriv Candle Chart with Arrow Indicators</title>
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        select, input, button {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background: #2a5298;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #1e3c72;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.connecting {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        #chart {
+            width: 100%;
+            height: 500px;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .arrows-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .arrows-container {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow-x: auto;
+            min-height: 150px;
+        }
+
+        .arrow-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-width: 50px;
+        }
+
+        .arrow-up {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 15px solid #00ff88;
+            position: relative;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            transition: all 0.3s;
+        }
+
+        .arrow-up::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 20px;
+            background: #00ff88;
+            left: 50%;
+            top: 15px;
+            transform: translateX(-50%);
+        }
+
+        .arrow-down {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 15px solid #ff4444;
+            position: relative;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            transition: all 0.3s;
+        }
+
+        .arrow-down::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 20px;
+            background: #ff4444;
+            left: 50%;
+            bottom: 15px;
+            transform: translateX(-50%);
+        }
+
+        .arrow-label {
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .arrow-change {
+            font-size: 10px;
+            color: #999;
+            text-align: center;
+        }
+
+        .arrow-time {
+            font-size: 9px;
+            color: #aaa;
+            text-align: center;
+        }
+
+        .time-separator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            padding: 0 5px;
+        }
+
+        .time-separator-icon {
+            font-size: 24px;
+            color: #2a5298;
+            margin-bottom: 5px;
+            animation: pulse 2s infinite;
+        }
+
+        .time-separator-text {
+            font-size: 10px;
+            color: #666;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .minute-summary {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            margin: 0 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .minute-summary-time {
+            font-size: 11px;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .minute-summary-counts {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .count-badge {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .count-badge.up {
+            background: rgba(0, 255, 136, 0.9);
+            color: #004d2a;
+        }
+
+        .count-badge.down {
+            background: rgba(255, 68, 68, 0.9);
+            color: #4d0000;
+        }
+
+        .minute-summary-impact {
+            font-size: 10px;
+            color: white;
+            text-align: center;
+            margin-top: 4px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            width: 100%;
+        }
+
+        .impact-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 2px 0;
+        }
+
+        .impact-label {
+            opacity: 0.8;
+        }
+
+        .impact-value {
+            font-weight: bold;
+        }
+
+        .impact-value.positive {
+            color: #00ff88;
+        }
+
+        .impact-value.negative {
+            color: #ff4444;
+        }
+
+        .net-impact {
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 4px;
+            padding: 4px;
+            border-radius: 4px;
+            /*background: rgba(255, 255, 255, 0.2);*/
+			background:white;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.6;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2a5298;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        /* Alert Panels */
+        .alerts-section {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .alert-panel {
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-panel.divergence {
+            border-left-color: #9b59b6;
+        }
+
+        .alert-panel.strength {
+            border-left-color: #e74c3c;
+        }
+
+        .alert-panel.pattern {
+            border-left-color: #3498db;
+        }
+
+        .alert-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .alert-icon {
+            font-size: 24px;
+        }
+
+        .alert-body {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .alert-timestamp {
+            font-size: 11px;
+            color: #999;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        .alert-level {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .alert-level.extreme {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .alert-level.high {
+            background: #f39c12;
+            color: white;
+        }
+
+        .alert-level.medium {
+            background: #3498db;
+            color: white;
+        }
+
+        .alert-level.low {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .pattern-confidence {
+            display: inline-block;
+            padding: 2px 6px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .no-alerts {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+            font-style: italic;
+        }
+
+        .alert-actions {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ddd;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .alert-actions strong {
+            color: #2a5298;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Deriv Candle Chart with Arrow Indicators</h1>
+        
+        <div class="status disconnected" id="status">
+            🔴 Disconnected
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Market Symbol</label>
+                <select id="symbol">
+                    <option value="R_10">Volatility 10 Index</option>
+                    <option value="R_25">Volatility 25 Index</option>
+                    <option value="R_50">Volatility 50 Index</option>
+                    <option value="R_75">Volatility 75 Index</option>
+                    <option value="R_100">Volatility 100 Index</option>
+                    <option value="1HZ10V">Volatility 10 (1s) Index</option>
+                    <option value="1HZ25V">Volatility 25 (1s) Index</option>
+                    <option value="frxEURUSD">EUR/USD</option>
+                    <option value="frxGBPUSD">GBP/USD</option>
+                    <option value="frxUSDJPY">USD/JPY</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Timeframe</label>
+                <select id="granularity">
+                    <option value="60">1 Minute</option>
+                    <option value="120">2 Minutes</option>
+                    <option value="180">3 Minutes</option>
+                    <option value="300">5 Minutes</option>
+                    <option value="900">15 Minutes</option>
+                    <option value="3600">1 Hour</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Candle Count</label>
+                <input type="number" id="count" value="50" min="10" max="200">
+            </div>
+
+            <div class="control-group">
+                <label>Max Change %</label>
+                <input type="number" id="maxChange" value="1.0" min="0.1" max="10" step="0.1">
+            </div>
+
+            <div class="control-group">
+                <label>Max Arrows Display</label>
+                <input type="number" id="maxArrows" value="30" min="10" max="100" step="5">
+            </div>
+
+            <button id="connectBtn">Connect & Load Data</button>
+            <button id="refreshBtn" disabled>Refresh</button>
+        </div>
+
+        <div id="chart"></div>
+
+        <div class="arrows-section">
+            <div class="section-title">
+                <span>📈 Price Change Arrows (Last Candles)</span>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(to right, rgba(0, 255, 136, 0.1), rgba(0, 255, 136, 1));"></div>
+                    <span>Green Up (Price Increase)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(to right, rgba(255, 68, 68, 0.1), rgba(255, 68, 68, 1));"></div>
+                    <span>Red Down (Price Decrease)</span>
+                </div>
+                <div class="legend-item">
+                    <span>• Darker = Bigger change</span>
+                </div>
+            </div>
+
+            <div class="arrows-container" id="arrowsContainer">
+                <div style="color: #999; text-align: center; width: 100%;">
+                    Waiting for data...
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-label">Total Candles</div>
+                    <div class="stat-value" id="totalCandles">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Change %</div>
+                    <div class="stat-value" id="avgChange">0.00%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Max Change %</div>
+                    <div class="stat-value" id="maxChangeValue">0.00%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Up / Down</div>
+                    <div class="stat-value" id="upDown">0 / 0</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 15px; padding: 10px; background: rgba(42, 82, 152, 0.1); border-radius: 8px; font-size: 12px; color: #666;">
+                <strong>📊 Minute Summary Card แสดง:</strong>
+                <ul style="margin: 5px 0; padding-left: 20px;">
+                    <li><strong>Up/Down Count:</strong> จำนวนแท่งเขียว/แดงในนาทีนั้น</li>
+                    <li><strong>Up Impact:</strong> ผลรวมราคาที่เพิ่มขึ้นจากแท่งเขียวทั้งหมด</li>
+                    <li><strong>Down Impact:</strong> ผลรวมราคาที่ลดลงจากแท่งแดงทั้งหมด</li>
+                    <li><strong>Net:</strong> ผลต่างสุทธิของราคาในนาทีนั้น (Up Impact + Down Impact)</li>
+                </ul>
+                <em>ตัวอย่าง: มี 5 แท่งเขียวราคาเพิ่ม +0.5 แต่มี 1 แท่งแดงราคาลด -3.0 = Net: -2.5</em>
+                <br><br>
+                <strong>🎯 Sliding Window:</strong> แสดงเฉพาะแท่งล่าสุด <strong id="maxArrowsDisplay">30</strong> แท่ง - เมื่อมีแท่งใหม่เกินจำนวนที่กำหนด แท่งเก่าจะถูกตัดออกอัตโนมัติ
+            </div>
+        </div>
+
+        <!-- Alerts Section -->
+        <div class="arrows-section" style="margin-top: 20px;">
+            <div class="section-title">
+                <span>🚨 Real-time Alerts & Pattern Detection</span>
+            </div>
+            
+            <div class="alerts-section" id="alertsContainer">
+                <div class="no-alerts">
+                    ⏳ รอข้อมูลเพื่อวิเคราะห์...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Deriv WebSocket Connection
+        let ws = null;
+        let chart = null;
+        let candleSeries = null;
+        let candles = [];
+        let isConnected = false;
+        let minuteSummaries = []; // Store minute summaries for analysis
+        let alerts = []; // Store alerts history
+        let thresholds = {
+            low: 0.001,
+            medium: 0.003,
+            high: 0.005,
+            extreme: 0.010
+        };
+
+        // DOM Elements
+        const statusEl = document.getElementById('status');
+        const connectBtn = document.getElementById('connectBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const symbolSelect = document.getElementById('symbol');
+        const granularitySelect = document.getElementById('granularity');
+        const countInput = document.getElementById('count');
+        const maxChangeInput = document.getElementById('maxChange');
+        const maxArrowsInput = document.getElementById('maxArrows');
+        const arrowsContainer = document.getElementById('arrowsContainer');
+
+        // Update display text when maxArrows changes
+        maxArrowsInput.addEventListener('input', () => {
+            const displayEl = document.getElementById('maxArrowsDisplay');
+            if (displayEl) {
+                displayEl.textContent = maxArrowsInput.value;
+            }
+            // Re-render arrows with new limit if we have data
+            if (candles.length > 0) {
+                renderArrows();
+            }
+        });
+
+        // Initialize Chart
+        function initChart() {
+            const chartContainer = document.getElementById('chart');
+            chartContainer.innerHTML = '';
+            
+            chart = LightweightCharts.createChart(chartContainer, {
+                width: chartContainer.clientWidth,
+                height: 500,
+                layout: {
+                    background: { color: '#ffffff' },
+                    textColor: '#333',
+                },
+                grid: {
+                    vertLines: { color: '#f0f0f0' },
+                    horzLines: { color: '#f0f0f0' },
+                },
+                timeScale: {
+                    timeVisible: true,
+                    secondsVisible: true,
+                },
+            });
+
+            candleSeries = chart.addCandlestickSeries({
+                upColor: '#00ff88',
+                downColor: '#ff4444',
+                borderUpColor: '#00ff88',
+                borderDownColor: '#ff4444',
+                wickUpColor: '#00ff88',
+                wickDownColor: '#ff4444',
+            });
+
+            // Responsive
+            window.addEventListener('resize', () => {
+                chart.applyOptions({ width: chartContainer.clientWidth });
+            });
+        }
+
+        // Update Status
+        function updateStatus(status, message) {
+            statusEl.className = 'status ' + status;
+            const icons = {
+                connected: '🟢',
+                disconnected: '🔴',
+                connecting: '🟡'
+            };
+            statusEl.textContent = `${icons[status]} ${message}`;
+        }
+
+        // Calculate Arrow Opacity
+        function calculateArrowOpacity(currentClose, previousClose) {
+            const maxChange = parseFloat(maxChangeInput.value);
+            const priceChange = ((currentClose - previousClose) / previousClose) * 100;
+            const absChange = Math.abs(priceChange);
+            
+            let opacity = absChange / maxChange;
+            opacity = Math.max(0.1, Math.min(1.0, opacity));
+            
+            return {
+                direction: priceChange >= 0 ? 'up' : 'down',
+                opacity: opacity,
+                change: priceChange
+            };
+        }
+
+        // Format Time
+        function formatTime(timestamp) {
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleTimeString('th-TH', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+
+        // ==================== ANALYSIS FUNCTIONS ====================
+
+        // 1. Divergence Detection
+        function detectDivergence(summaries) {
+            if (summaries.length < 3) return null;
+            
+            const last3 = summaries.slice(-3);
+            const prices = last3.map(s => s.closePrice);
+            const impacts = last3.map(s => s.netImpact);
+            
+            // Bullish Divergence: Price Lower Low, Impact Higher Low
+            const priceLowerLow = prices[2] < prices[1] && prices[1] < prices[0];
+            const impactHigherLow = impacts[2] > impacts[1] && impacts[1] > impacts[0];
+            
+            if (priceLowerLow && impactHigherLow && impacts[2] < 0) {
+                return {
+                    type: 'BULLISH',
+                    icon: '📈',
+                    title: 'Bullish Divergence Detected',
+                    message: 'ราคาทำ Lower Low แต่แรงขายลดลง',
+                    prediction: 'มีโอกาสกลับตัวขึ้น',
+                    strength: calculateDivergenceStrength(prices, impacts),
+                    data: {
+                        prices: prices.map(p => p.toFixed(5)),
+                        impacts: impacts.map(i => i.toFixed(5))
+                    }
+                };
+            }
+            
+            // Bearish Divergence: Price Higher High, Impact Lower High
+            const priceHigherHigh = prices[2] > prices[1] && prices[1] > prices[0];
+            const impactLowerHigh = impacts[2] < impacts[1] && impacts[1] < impacts[0];
+            
+            if (priceHigherHigh && impactLowerHigh && impacts[2] > 0) {
+                return {
+                    type: 'BEARISH',
+                    icon: '📉',
+                    title: 'Bearish Divergence Detected',
+                    message: 'ราคาทำ Higher High แต่แรงซื้อลดลง',
+                    prediction: 'มีโอกาสกลับตัวลง',
+                    strength: calculateDivergenceStrength(prices, impacts),
+                    data: {
+                        prices: prices.map(p => p.toFixed(5)),
+                        impacts: impacts.map(i => i.toFixed(5))
+                    }
+                };
+            }
+            
+            return null;
+        }
+
+        function calculateDivergenceStrength(prices, impacts) {
+            const priceChange = Math.abs(prices[2] - prices[0]);
+            const impactChange = Math.abs(impacts[2] - impacts[0]);
+            const ratio = impactChange / (priceChange + 0.00001);
+            
+            if (ratio > 0.5) return 'STRONG';
+            if (ratio > 0.3) return 'MEDIUM';
+            return 'WEAK';
+        }
+
+        // 2. Strength Threshold Detection
+        function checkStrengthThreshold(summary, previousSummaries) {
+            const netImpact = summary.netImpact;
+            const absImpact = Math.abs(netImpact);
+            const direction = netImpact > 0 ? 'UP' : 'DOWN';
+            const results = [];
+            
+            // Extreme Spike
+            if (absImpact > thresholds.extreme) {
+                results.push({
+                    level: 'EXTREME',
+                    icon: '🚨',
+                    title: `EXTREME ${direction} SPIKE!`,
+                    message: `Net Impact: ${netImpact >= 0 ? '+' : ''}${netImpact.toFixed(5)} (${(netImpact/summary.closePrice*100).toFixed(3)}%)`,
+                    prediction: 'ระวัง! Momentum แรงมาก อาจมีข่าวสำคัญ',
+                    color: 'extreme'
+                });
+            } else if (absImpact > thresholds.high) {
+                results.push({
+                    level: 'HIGH',
+                    icon: '⚠️',
+                    title: `HIGH ${direction} MOMENTUM`,
+                    message: `Net Impact: ${netImpact >= 0 ? '+' : ''}${netImpact.toFixed(5)}`,
+                    prediction: 'Momentum แรง - สังเกตการณ์',
+                    color: 'high'
+                });
+            }
+            
+            // Sustained Strength
+            if (previousSummaries.length >= 2) {
+                const last3 = [...previousSummaries.slice(-2), summary];
+                const allSameDirection = last3.every(s => (s.netImpact > 0) === (netImpact > 0));
+                const allHigh = last3.every(s => Math.abs(s.netImpact) > thresholds.medium);
+                
+                if (allSameDirection && allHigh) {
+                    results.push({
+                        level: 'SUSTAINED',
+                        icon: '🔄',
+                        title: 'SUSTAINED MOMENTUM',
+                        message: `ทิศทาง ${direction} ต่อเนื่อง 3 นาที`,
+                        prediction: 'เทรนด์แข็งแกร่ง - พิจารณาติดตาม',
+                        color: 'medium'
+                    });
+                }
+            }
+            
+            // Momentum Reversal
+            if (previousSummaries.length >= 1) {
+                const prev = previousSummaries[previousSummaries.length - 1];
+                const prevAbs = Math.abs(prev.netImpact);
+                
+                if (absImpact > thresholds.medium && 
+                    prevAbs > thresholds.medium &&
+                    (prev.netImpact > 0) !== (netImpact > 0)) {
+                    results.push({
+                        level: 'REVERSAL',
+                        icon: '↩️',
+                        title: 'MOMENTUM REVERSAL!',
+                        message: `จาก ${prev.netImpact > 0 ? 'UP' : 'DOWN'} → ${direction}`,
+                        prediction: 'กลับทิศทันที - ระวังการเปลี่ยนแปลง',
+                        color: 'high'
+                    });
+                }
+            }
+            
+            return results;
+        }
+
+        // 3. Pattern Recognition
+        function recognizePattern(summaries) {
+            if (summaries.length < 5) return null;
+            
+            const last5 = summaries.slice(-5);
+            
+            // Helper: Check trend
+            const checkTrend = (values) => {
+                let upCount = 0;
+                for (let i = 1; i < values.length; i++) {
+                    if (values[i] > values[i-1]) upCount++;
+                }
+                if (upCount >= values.length * 0.7) return 'UP';
+                if (upCount <= values.length * 0.3) return 'DOWN';
+                return 'SIDEWAYS';
+            };
+            
+            const upCountTrend = checkTrend(last5.map(s => s.upCount));
+            const downCountTrend = checkTrend(last5.map(s => s.downCount));
+            const netImpactTrend = checkTrend(last5.map(s => s.netImpact));
+            
+            // 1. Accumulation Pattern
+            if (upCountTrend === 'UP' && netImpactTrend === 'UP') {
+                return {
+                    pattern: 'ACCUMULATION',
+                    icon: '📊',
+                    title: 'Accumulation Pattern',
+                    message: 'แรงซื้อกำลังสะสมตัวเรื่อยๆ',
+                    prediction: 'อาจเกิด Breakout ขึ้นในเร็วๆ นี้',
+                    confidence: 'HIGH',
+                    visual: last5.map(s => s.upCount > s.downCount ? '▲' : '▼').join(' ')
+                };
+            }
+            
+            // 2. Distribution Pattern
+            if (downCountTrend === 'UP' && netImpactTrend === 'DOWN') {
+                return {
+                    pattern: 'DISTRIBUTION',
+                    icon: '📊',
+                    title: 'Distribution Pattern',
+                    message: 'แรงขายกำลังเพิ่มขึ้นเรื่อยๆ',
+                    prediction: 'อาจเกิด Breakout ลงในเร็วๆ นี้',
+                    confidence: 'HIGH',
+                    visual: last5.map(s => s.upCount > s.downCount ? '▲' : '▼').join(' ')
+                };
+            }
+            
+            // 3. Consolidation Pattern
+            const avgNetImpact = last5.reduce((sum, s) => sum + Math.abs(s.netImpact), 0) / 5;
+            const upDownBalance = last5.every(s => Math.abs(s.upCount - s.downCount) <= 2);
+            
+            if (avgNetImpact < thresholds.low && upDownBalance) {
+                return {
+                    pattern: 'CONSOLIDATION',
+                    icon: '↔️',
+                    title: 'Consolidation Pattern',
+                    message: 'ตลาดรวมตัว ไม่มีทิศทางชัด',
+                    prediction: 'รอ Breakout - เตรียมพร้อมเข้าเทรด',
+                    confidence: 'MEDIUM',
+                    visual: last5.map(s => '━').join(' ')
+                };
+            }
+            
+            // 4. Breakout Pattern
+            const last = last5[last5.length - 1];
+            const prev4Avg = last5.slice(0, 4).reduce((sum, s) => sum + Math.abs(s.netImpact), 0) / 4;
+            
+            if (Math.abs(last.netImpact) > prev4Avg * 2.5 && prev4Avg < thresholds.medium) {
+                return {
+                    pattern: 'BREAKOUT',
+                    icon: '🚀',
+                    title: `Breakout ${last.netImpact > 0 ? 'ขึ้น' : 'ลง'}!`,
+                    message: `Net Impact กระโดดจาก ${prev4Avg.toFixed(5)} → ${last.netImpact.toFixed(5)}`,
+                    prediction: 'เทรนด์ใหม่เริ่มแล้ว - พิจารณาเข้าเทรด',
+                    confidence: 'HIGH',
+                    visual: '━━━━ ' + (last.netImpact > 0 ? '🚀▲' : '💥▼')
+                };
+            }
+            
+            // 5. Exhaustion Pattern
+            const last3Impacts = last5.slice(-3).map(s => Math.abs(s.netImpact));
+            const impactDecreasing = last3Impacts[2] < last3Impacts[1] && last3Impacts[1] < last3Impacts[0];
+            const stillSameDirection = last5.slice(-3).every(s => 
+                (s.netImpact > 0) === (last5[0].netImpact > 0)
+            );
+            
+            if (impactDecreasing && stillSameDirection && last3Impacts[0] > thresholds.medium) {
+                return {
+                    pattern: 'EXHAUSTION',
+                    icon: '⚠️',
+                    title: 'Exhaustion Pattern',
+                    message: 'แรงเริ่มหมด ทั้งที่ยังไปทิศทางเดิม',
+                    prediction: 'ใกล้จุดกลับตัว - พิจารณาปิดออร์เดอร์',
+                    confidence: 'MEDIUM',
+                    visual: last5.map((s, i) => i < 2 ? '▲' : '△').join(' ')
+                };
+            }
+            
+            return null;
+        }
+
+        // Render Alerts
+        function renderAlerts() {
+            const alertsContainer = document.getElementById('alertsContainer');
+            
+            if (alerts.length === 0) {
+                alertsContainer.innerHTML = '<div class="no-alerts">✅ ไม่มีการแจ้งเตือนในขณะนี้</div>';
+                return;
+            }
+            
+            // Show only last 6 alerts
+            const recentAlerts = alerts.slice(-6).reverse();
+            
+            alertsContainer.innerHTML = recentAlerts.map(alert => {
+                let panelClass = 'alert-panel';
+                let levelBadge = '';
+                
+                if (alert.category === 'divergence') {
+                    panelClass += ' divergence';
+                } else if (alert.category === 'strength') {
+                    panelClass += ' strength';
+                    levelBadge = `<span class="alert-level ${alert.data.color}">${alert.data.level}</span>`;
+                } else if (alert.category === 'pattern') {
+                    panelClass += ' pattern';
+                }
+                
+                return `
+                    <div class="${panelClass}">
+                        <div class="alert-header">
+                            <span class="alert-icon">${alert.data.icon}</span>
+                            <span>${alert.data.title}</span>
+                            ${levelBadge}
+                        </div>
+                        <div class="alert-body">
+                            <div><strong>สถานการณ์:</strong> ${alert.data.message}</div>
+                            <div style="margin-top: 5px;"><strong>การคาดการณ์:</strong> ${alert.data.prediction}</div>
+                            ${alert.data.visual ? `<div style="margin-top: 5px; font-family: monospace;">${alert.data.visual}</div>` : ''}
+                            ${alert.data.confidence ? `<span class="pattern-confidence">${alert.data.confidence} Confidence</span>` : ''}
+                        </div>
+                        <div class="alert-timestamp">🕐 ${alert.timestamp}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render Arrows
+        function renderArrows() {
+            if (candles.length < 2) {
+                arrowsContainer.innerHTML = '<div style="color: #999; text-align: center; width: 100%;">Need at least 2 candles</div>';
+                return;
+            }
+
+            arrowsContainer.innerHTML = '';
+            const arrowData = [];
+            let totalChange = 0;
+            let maxChange = 0;
+            let upCount = 0;
+            let downCount = 0;
+
+            // Get max arrows to display from input
+            const maxArrowsToDisplay = parseInt(document.getElementById('maxArrows').value);
+
+            // Calculate arrows for last N candles based on maxArrowsToDisplay
+            const displayCount = Math.min(maxArrowsToDisplay, candles.length - 1);
+            const startIndex = Math.max(0, candles.length - displayCount - 1);
+
+            for (let i = startIndex + 1; i < candles.length; i++) {
+                const current = candles[i];
+                const previous = candles[i - 1];
+                const arrow = calculateArrowOpacity(current.close, previous.close);
+                
+                arrowData.push({
+                    ...arrow,
+                    time: current.time,
+                    currentClose: current.close,
+                    previousClose: previous.close
+                });
+
+                totalChange += Math.abs(arrow.change);
+                maxChange = Math.max(maxChange, Math.abs(arrow.change));
+                
+                if (arrow.direction === 'up') upCount++;
+                else downCount++;
+            }
+
+            // Group arrows by minute for summary
+            const minuteGroups = {};
+            arrowData.forEach(arrow => {
+                const date = new Date(arrow.time * 1000);
+                const minuteKey = `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+                
+                if (!minuteGroups[minuteKey]) {
+                    minuteGroups[minuteKey] = {
+                        time: arrow.time,
+                        arrows: [],
+                        upCount: 0,
+                        downCount: 0,
+                        upTotalChange: 0,
+                        downTotalChange: 0,
+                        closePrice: arrow.currentClose
+                    };
+                }
+                
+                minuteGroups[minuteKey].arrows.push(arrow);
+                minuteGroups[minuteKey].closePrice = arrow.currentClose; // Update to latest
+                
+                if (arrow.direction === 'up') {
+                    minuteGroups[minuteKey].upCount++;
+                    minuteGroups[minuteKey].upTotalChange += (arrow.currentClose - arrow.previousClose);
+                } else {
+                    minuteGroups[minuteKey].downCount++;
+                    minuteGroups[minuteKey].downTotalChange += (arrow.currentClose - arrow.previousClose);
+                }
+            });
+
+            // Update minute summaries with netImpact
+            minuteSummaries = Object.entries(minuteGroups).map(([key, data]) => ({
+                minuteKey: key,
+                time: data.time,
+                closePrice: data.closePrice,
+                upCount: data.upCount,
+                downCount: data.downCount,
+                upTotalChange: data.upTotalChange,
+                downTotalChange: data.downTotalChange,
+                netImpact: data.upTotalChange + data.downTotalChange,
+                arrows: data.arrows
+            })).sort((a, b) => a.time - b.time);
+
+            // ==================== RUN ANALYSIS ====================
+            
+            // 1. Divergence Detection
+            const divergence = detectDivergence(minuteSummaries);
+            if (divergence) {
+                const existingDivergence = alerts.find(a => 
+                    a.category === 'divergence' && 
+                    a.data.type === divergence.type &&
+                    Date.now() - a.createdAt < 60000 // ไม่ซ้ำภายใน 1 นาที
+                );
+                
+                if (!existingDivergence) {
+                    alerts.push({
+                        category: 'divergence',
+                        data: divergence,
+                        timestamp: new Date().toLocaleTimeString('th-TH'),
+                        createdAt: Date.now()
+                    });
+                }
+            }
+            
+            // 2. Strength Threshold (check latest minute only)
+            if (minuteSummaries.length > 0) {
+                const latestSummary = minuteSummaries[minuteSummaries.length - 1];
+                const previousSummaries = minuteSummaries.slice(0, -1);
+                const strengthAlerts = checkStrengthThreshold(latestSummary, previousSummaries);
+                
+                strengthAlerts.forEach(alert => {
+                    const existing = alerts.find(a => 
+                        a.category === 'strength' && 
+                        a.data.level === alert.level &&
+                        Date.now() - a.createdAt < 30000 // ไม่ซ้ำภายใน 30 วินาที
+                    );
+                    
+                    if (!existing) {
+                        alerts.push({
+                            category: 'strength',
+                            data: alert,
+                            timestamp: new Date().toLocaleTimeString('th-TH'),
+                            createdAt: Date.now()
+                        });
+                    }
+                });
+            }
+            
+            // 3. Pattern Recognition
+            const pattern = recognizePattern(minuteSummaries);
+            if (pattern) {
+                const existingPattern = alerts.find(a => 
+                    a.category === 'pattern' && 
+                    a.data.pattern === pattern.pattern &&
+                    Date.now() - a.createdAt < 120000 // ไม่ซ้ำภายใน 2 นาที
+                );
+                
+                if (!existingPattern) {
+                    alerts.push({
+                        category: 'pattern',
+                        data: pattern,
+                        timestamp: new Date().toLocaleTimeString('th-TH'),
+                        createdAt: Date.now()
+                    });
+                }
+            }
+            
+            // Limit alerts to last 20
+            if (alerts.length > 20) {
+                alerts = alerts.slice(-20);
+            }
+            
+            // Update alerts display
+            renderAlerts();
+
+            // Render arrows with minute summaries
+            let lastMinute = null;
+            let currentMinuteArrows = [];
+			//const currentDate = new Date(arrow.time * 1000);
+            
+            arrowData.forEach((arrow, index) => {
+                // Get current minute
+                const currentDate = new Date(arrow.time * 1000);
+                const currentMinute = currentDate.getMinutes();
+                const currentHour = currentDate.getHours();
+				//const currentSeconds = currentDate.getSeconds();
+				//console.log(currentSeconds);
+				
+                const currentKey = `${currentHour}:${String(currentMinute).padStart(2, '0')}`;
+				
+				/*
+				const currentKey = `${currentHour}:${currentMinute}:${currentSeconds}`;
+				*/
+                
+                // Add summary when minute changes (show summary of previous minute)
+                if (lastMinute !== null && lastMinute !== currentKey && minuteGroups[lastMinute]) {
+                    const summary = minuteGroups[lastMinute];
+                    const summaryDiv = document.createElement('div');
+                    summaryDiv.className = 'minute-summary';
+                    
+                    const netChange = summary.upTotalChange + summary.downTotalChange;
+                    const netPercent = ((netChange / summary.arrows[0].previousClose) * 100);
+                    
+                    summaryDiv.innerHTML = `
+                        <div class="minute-summary-time">
+                            ⏱️ ${lastMinute}
+                        </div>
+                        <div class="minute-summary-counts">
+                            <div class="count-badge up">
+                                ▲ ${summary.upCount}
+                            </div>
+                            <div class="count-badge down">
+                                ▼ ${summary.downCount}
+                            </div>
+                        </div>
+                        <div class="minute-summary-impact">
+                            <div class="impact-row">
+                                <span class="impact-label">Up Impact:</span>
+                                <span class="impact-value positive">+${summary.upTotalChange.toFixed(5)}</span>
+                            </div>
+                            <div class="impact-row">
+                                <span class="impact-label">Down Impact:</span>
+                                <span class="impact-value negative">${summary.downTotalChange.toFixed(5)}</span>
+                            </div>
+                            <div class="net-impact" style="color: ${netChange >= 0 ? '#00ff88' : '#ff4444'}">
+                                Net: ${netChange >= 0 ? '+' : ''}${netChange.toFixed(5)}
+                                <br>
+                                (${netPercent >= 0 ? '+' : ''}${netPercent.toFixed(3)}%)
+                            </div>
+                        </div>
+                    `;
+                    
+                    arrowsContainer.appendChild(summaryDiv);
+                }
+                
+                lastMinute = currentKey;
+
+                // Render arrow
+                const wrapper = document.createElement('div');
+                wrapper.className = 'arrow-wrapper';
+
+                const arrowDiv = document.createElement('div');
+                arrowDiv.className = arrow.direction === 'up' ? 'arrow-up' : 'arrow-down';
+                arrowDiv.style.opacity = arrow.opacity;
+
+                const label = document.createElement('div');
+                label.className = 'arrow-label';
+                label.textContent = `${arrow.change >= 0 ? '+' : ''}${arrow.change.toFixed(3)}%`;
+                label.style.color = arrow.direction === 'up' ? '#00aa66' : '#cc3333';
+
+                const change = document.createElement('div');
+                change.className = 'arrow-change';
+                change.textContent = arrow.currentClose.toFixed(5);
+
+                const time = document.createElement('div');
+                time.className = 'arrow-time';
+                time.textContent = formatTime(arrow.time);
+
+                wrapper.appendChild(arrowDiv);
+                wrapper.appendChild(label);
+                wrapper.appendChild(change);
+                wrapper.appendChild(time);
+                arrowsContainer.appendChild(wrapper);
+            });
+
+            // Add summary for the last minute
+            if (lastMinute && minuteGroups[lastMinute]) {
+                const summary = minuteGroups[lastMinute];
+                const summaryDiv = document.createElement('div');
+                summaryDiv.className = 'minute-summary';
+                
+                const netChange = summary.upTotalChange + summary.downTotalChange;
+                const netPercent = ((netChange / summary.arrows[0].previousClose) * 100);
+                
+                summaryDiv.innerHTML = `
+                    <div class="minute-summary-time">
+                        ⏱️ ${lastMinute} (Current)
+                    </div>
+                    <div class="minute-summary-counts">
+                        <div class="count-badge up">
+                            ▲ ${summary.upCount}
+                        </div>
+                        <div class="count-badge down">
+                            ▼ ${summary.downCount}
+                        </div>
+                    </div>
+                    <div class="minute-summary-impact">
+                        <div class="impact-row">
+                            <span class="impact-label">Up Impact:</span>
+                            <span class="impact-value positive">+${summary.upTotalChange.toFixed(5)}</span>
+                        </div>
+                        <div class="impact-row">
+                            <span class="impact-label">Down Impact:</span>
+                            <span class="impact-value negative">${summary.downTotalChange.toFixed(5)}</span>
+                        </div>
+                        <div class="net-impact" style="color: ${netChange >= 0 ? '#00ff88' : '#ff4444'}">
+                            Net: ${netChange >= 0 ? '+' : ''}${netChange.toFixed(5)}
+                            <br>
+                            (${netPercent >= 0 ? '+' : ''}${netPercent.toFixed(3)}%)
+                        </div>
+                    </div>
+                `;
+                
+                arrowsContainer.appendChild(summaryDiv);
+            }
+
+            // Auto-scroll to the right to show latest arrows
+            arrowsContainer.scrollLeft = arrowsContainer.scrollWidth;
+
+            // Update stats
+            document.getElementById('totalCandles').textContent = candles.length;
+            document.getElementById('avgChange').textContent = (totalChange / arrowData.length).toFixed(3) + '%';
+            document.getElementById('maxChangeValue').textContent = maxChange.toFixed(3) + '%';
+            document.getElementById('upDown').textContent = `${upCount} / ${downCount}`;
+        }
+
+        // Connect to Deriv
+        function connect() {
+            if (ws && isConnected) {
+                ws.close();
+            }
+
+            updateStatus('connecting', 'Connecting to Deriv...');
+            connectBtn.disabled = true;
+            
+            // Deriv API WebSocket (ใช้ demo app_id)
+            ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
+
+            ws.onopen = () => {
+                isConnected = true;
+                updateStatus('connected', 'Connected to Deriv');
+                requestCandles();
+            };
+
+            ws.onmessage = (msg) => {
+                const data = JSON.parse(msg.data);
+                
+                if (data.msg_type === 'candles') {
+                    handleCandlesData(data.candles);
+                } else if (data.msg_type === 'ohlc') {
+                    handleOHLCData(data.ohlc);
+                } else if (data.error) {
+                    console.error('Deriv API Error:', data.error.message);
+                    updateStatus('disconnected', 'Error: ' + data.error.message);
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket Error:', error);
+                updateStatus('disconnected', 'Connection Error');
+                connectBtn.disabled = false;
+                refreshBtn.disabled = true;
+            };
+
+            ws.onclose = () => {
+                isConnected = false;
+                updateStatus('disconnected', 'Disconnected');
+                connectBtn.disabled = false;
+                refreshBtn.disabled = true;
+            };
+        }
+
+        // Request Candles from Deriv
+        function requestCandles() {
+            const symbol = symbolSelect.value;
+            const granularity = parseInt(granularitySelect.value);
+            const count = parseInt(countInput.value);
+
+            const request = {
+                ticks_history: symbol,
+                adjust_start_time: 1,
+                count: count,
+                end: 'latest',
+                start: 1,
+                style: 'candles',
+                granularity: granularity
+            };
+
+            ws.send(JSON.stringify(request));
+            
+            // Subscribe to live updates
+            const subscribeRequest = {
+                ticks_history: symbol,
+                adjust_start_time: 1,
+                count: 1,
+                end: 'latest',
+                start: 1,
+                style: 'candles',
+                granularity: granularity,
+                subscribe: 1
+            };
+
+            setTimeout(() => {
+                if (ws && isConnected) {
+                    ws.send(JSON.stringify(subscribeRequest));
+                }
+            }, 1000);
+        }
+
+        // Handle Candles Data
+        function handleCandlesData(candlesData) {
+            candles = candlesData.map(c => ({
+                time: c.epoch,
+                open: parseFloat(c.open),
+                high: parseFloat(c.high),
+                low: parseFloat(c.low),
+                close: parseFloat(c.close)
+            }));
+
+            // Update chart
+            candleSeries.setData(candles);
+            
+            // Render arrows
+            renderArrows();
+            
+            refreshBtn.disabled = false;
+            updateStatus('connected', `Connected - ${candles.length} candles loaded`);
+        }
+
+        // Handle Live OHLC Updates
+        function handleOHLCData(ohlc) {
+            const newCandle = {
+                time: ohlc.epoch,
+                open: parseFloat(ohlc.open),
+                high: parseFloat(ohlc.high),
+                low: parseFloat(ohlc.low),
+                close: parseFloat(ohlc.close)
+            };
+
+            // Update or add candle
+            const lastCandle = candles[candles.length - 1];
+            if (lastCandle && lastCandle.time === newCandle.time) {
+                candles[candles.length - 1] = newCandle;
+            } else {
+                candles.push(newCandle);
+            }
+
+            // Update chart
+            candleSeries.update(newCandle);
+            
+            // Re-render arrows
+            renderArrows();
+        }
+
+        // Event Listeners
+        connectBtn.addEventListener('click', connect);
+        
+        refreshBtn.addEventListener('click', () => {
+            if (isConnected) {
+                requestCandles();
+            }
+        });
+
+        // Initialize
+        initChart();
+    </script>
+</body>
+</html>
