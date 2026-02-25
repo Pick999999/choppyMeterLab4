@@ -1,0 +1,619 @@
+:root {
+    --bg-dark: #0f172a;
+    --bg-card: rgba(30, 41, 59, 0.7);
+    --primary: #3b82f6;
+    --primary-glow: rgba(59, 130, 246, 0.5);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: rgba(255, 255, 255, 0.1);
+    --success: #22c55e;
+    --warning: #eab308;
+    --danger: #ef4444;
+    --card-radius: 16px;
+    --font-main: 'Outfit', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-dark);
+    background-image:
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+    color: var(--text-main);
+    font-family: var(--font-main);
+    min-height: 100vh;
+    padding: 20px 20px 100px 20px;
+}
+
+.app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Glass Panel Utility */
+.glass-panel {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Header */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.highlight {
+    color: var(--primary);
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.status-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.status-pill {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.status-pill.connected {
+    color: var(--success);
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.status-pill.disconnected {
+    color: var(--text-muted);
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: currentColor;
+    box-shadow: 0 0 8px currentColor;
+}
+
+.btn-toggle-connect {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 4px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-toggle-connect:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-toggle-connect.stopped {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+/* Controls */
+.controls-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-end;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-group label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Custom Buttons & Inputs */
+.btn-toggle {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btn-toggle:first-child {
+    border-radius: 8px 0 0 8px;
+}
+
+.btn-toggle:last-child {
+    border-radius: 0 8px 8px 0;
+    border-left: none;
+}
+
+.btn-toggle:not(:first-child):not(:last-child) {
+    border-left: none;
+}
+
+.btn-toggle.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    font-family: inherit;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+select,
+input {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-family: inherit;
+    outline: none;
+    smin-width: 100px;
+}
+
+input[type="checkbox"] {
+
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-family: inherit;
+    outline: none;
+    min-width: 10px;
+    width: 25px;
+    height: 25px;
+}
+
+
+select:focus,
+input:focus {
+    border-color: var(--primary);
+}
+
+.settings-panel {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 24px;
+    min-height: 400px;
+}
+
+/* Asset Card */
+.asset-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.asset-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+}
+
+.asset-card.selected {
+    background: rgba(59, 130, 246, 0.15);
+    /* Primary color tint */
+    border-color: var(--primary);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+/* Rank Badge */
+.rank-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.rank-badge.top-1 {
+    background: linear-gradient(135deg, #ffd700, #b8860b);
+    color: #000;
+}
+
+.rank-badge.top-2 {
+    background: linear-gradient(135deg, #c0c0c0, #7f8c8d);
+    color: #000;
+}
+
+.rank-badge.top-3 {
+    background: linear-gradient(135deg, #cd7f32, #8b4513);
+    color: white;
+}
+
+/* Card Header */
+.card-header h2 {
+    font-size: 1.25rem;
+    margin-bottom: 4px;
+}
+
+.price {
+    font-family: monospace;
+    color: var(--text-muted);
+}
+
+/* Meter Area */
+.meter-container {
+    height: 180px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.canvas-container {
+    width: 220px;
+    height: 110px;
+    /* Semi-circle */
+    position: relative;
+}
+
+/* Stats Row */
+.stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.stat-item {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Loading */
+.loading-state {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--primary);
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .status-bar {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .controls-grid {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* Recent Candles Strip */
+.candle-strip {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 16px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.candle-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.candle-dot.up {
+    background-color: var(--success);
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.4);
+}
+
+.candle-dot.down {
+    background-color: var(--danger);
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.4);
+}
+
+/* Analog Clock */
+.clock-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.analog-clock {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    position: relative;
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.hand {
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    transform-origin: bottom center;
+    border-radius: 2px;
+    transform: translateX(-50%);
+}
+
+.hand.hour {
+    height: 25%;
+    width: 3px;
+    background: var(--text-main);
+    z-index: 2;
+}
+
+.hand.minute {
+    height: 35%;
+    width: 2px;
+    background: var(--text-main);
+    z-index: 3;
+}
+
+.hand.second {
+    height: 40%;
+    width: 1px;
+    background: var(--danger);
+    z-index: 4;
+}
+
+.center-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text-main);
+    transform: translate(-50%, -50%);
+    z-index: 5;
+}
+
+.digital-clock {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    min-width: 85px;
+}
+
+/* Choppy Trend Icons */
+.trend-strip {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    margin-top: 8px;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+}
+
+.trend-icon {
+    font-size: 14px;
+    /* Adjusted for visibility */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+}
+
+.trend-up {
+    color: var(--success);
+}
+
+.trend-down {
+    color: var(--danger);
+}
+
+/* Details Page Layout */
+.details-layout {
+    display: grid;
+    /* Use 'start' to ensure height isn't forced to match charts if panels are shorter */
+    grid-template-columns: 1fr 350px;
+    gap: 24px;
+    align-items: start;
+}
+
+/* Container for the list of panels */
+#trade-panel-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    /* This allows the sticky inside to work relative to the viewport if needed, 
+       but here we want the whole sidebar to scroll with page.
+       The user complained panels overlap each other. 
+       If we use sticky on EACH panel, they stack.
+       If we want them to scroll normally, we remove sticky or ensure enough space.
+       The user said "lower panel overlaps upper one when scrolling". This happens if sticky is set.
+       We should remove sticky from .trade-panel or manage it differently.
+       Let's remove sticky to fix overlap first.
+    */
+}
+
+.trade-panel {
+    /* remove sticky to prevent stacking/overlap issues when there are multiple */
+    position: relative;
+    top: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: fit-content;
+}
+
+.trade-result-box {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 1024px) {
+    .details-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .trade-panel {
+        position: static;
+    }
+}
+
+.blink-animation {
+    animation: blink-animation 1s steps(5, start) infinite;
+}
+
+@keyframes blink-animation {
+    to {
+        visibility: hidden;
+    }
+}
