@@ -1,0 +1,362 @@
+/* ===========================
+   V3 Specific Styles
+   - Tabbed Modal
+   - Settings Button
+   - Color Picker
+   =========================== */
+
+/* Settings Button with Emoji */
+.btn-settings-modal {
+    background: rgba(59, 130, 246, 0.1);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    font-size: 1.5rem;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0 10px;
+}
+
+.btn-settings-modal:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.5);
+    transform: rotate(90deg) scale(1.1);
+}
+
+.btn-settings-modal:active {
+    transform: rotate(90deg) scale(0.95);
+}
+
+/* Tabs Navigation */
+.tabs-nav {
+    display: flex;
+    gap: 8px;
+    padding: 20px 20px 0;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+/* Tab Contents */
+.tab-content {
+    display: none;
+    padding: 20px 0;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tab-content h4 {
+    margin: 0 0 20px 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Color Picker Input */
+.color-picker {
+    width: 100%;
+    height: 40px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 4px;
+}
+
+.color-picker:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.02);
+}
+
+.color-picker::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-picker::-webkit-color-swatch {
+    border: none;
+    border-radius: 6px;
+}
+
+.color-picker::-moz-color-swatch {
+    border: none;
+    border-radius: 6px;
+}
+
+/* Modal Box Large for Settings */
+.modal-box-lg {
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Modal Content Padding for Tabs */
+.modal-box-lg .modal-content {
+    padding: 0 20px 20px;
+}
+
+/* Controls Grid in Tab */
+.tab-content .controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+/* EMA Settings Grid in Tab */
+.tab-content .ema-settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Token Section in Tab */
+.tab-content .token-auth-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 500px;
+}
+
+/* Trading Settings in Tab */
+.tab-content .trading-settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+/* Responsive Tabs */
+@media (max-width: 768px) {
+    .tabs-nav {
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        flex: 1 1 45%;
+        font-size: 0.85rem;
+        padding: 10px;
+    }
+
+    .modal-box-lg {
+        max-width: 95vw;
+        margin: 20px;
+    }
+
+    .tab-content .controls-grid,
+    .tab-content .ema-settings-grid,
+    .tab-content .trading-settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Enhanced Modal Header for Settings */
+.modal-box-lg .modal-header h3 {
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Input Group Adjustments for Color Picker */
+.input-group-sm {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-group-sm label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Ensure consistent heights */
+.input-group-sm select,
+.input-group-sm input[type="number"],
+.input-group-sm input[type="color"] {
+    height: 40px;
+}
+
+/* EMA Label Color Indicators */
+.ema-label.ema-short::before {
+    content: "●";
+    margin-right: 6px;
+    color: #3b82f6;
+}
+
+.ema-label.ema-medium::before {
+    content: "●";
+    margin-right: 6px;
+    color: #f59e0b;
+}
+
+.ema-label.ema-long::before {
+    content: "●";
+    margin-right: 6px;
+    color: #8b5cf6;
+}
+
+/* Dynamic color based on user selection */
+.ema-label[data-color]::before {
+    color: attr(data-color);
+}
+
+/* Better spacing for tab sections */
+.tab-content>div {
+    margin-bottom: 20px;
+}
+
+.tab-content>div:last-child {
+    margin-bottom: 0;
+}
+
+/* Scrollbar Styling for Modal */
+.modal-box-lg::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-box-lg::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.modal-box-lg::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.5);
+    border-radius: 4px;
+}
+
+.modal-box-lg::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.7);
+}
+
+/* Dark Mode Enhancements */
+@media (prefers-color-scheme: dark) {
+    .btn-settings-modal {
+        background: rgba(59, 130, 246, 0.15);
+        border-color: rgba(59, 130, 246, 0.4);
+    }
+
+    .tabs-nav {
+        background: rgba(0, 0, 0, 0.4);
+        border-bottom-color: rgba(255, 255, 255, 0.15);
+    }
+}
+
+/* Candle Strip Styles for V4 */
+.candle-strip-sm {
+    display: flex;
+    gap: 3px;
+    justify-content: center;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    margin-top: 5px;
+}
+
+.candle-dot-sm {
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+}
+
+.candle-dot-sm.bull {
+    background-color: #22c55e;
+    box-shadow: 0 0 4px #22c55e;
+}
+
+.candle-dot-sm.bear {
+    background-color: #ef4444;
+    box-shadow: 0 0 4px #ef4444;
+}
+
+/* Chart Legend */
+.chart-legend {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.chart-legend .legend-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.legend-swatch {
+    width: 28px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+
+.legend-label { font-size: 12px; color: #e6eef8; }
+
+.legend-swatch.ob-bear { background: rgba(247,124,128,0.28); }
+.legend-swatch.ob-bull { background: rgba(49,121,245,0.28); }
+.legend-swatch.fvg-bull { background: rgba(0,255,104,0.18); }
+.legend-swatch.fvg-bear { background: rgba(255,0,8,0.18); }
+
+/* Slope lag warning style */
+.slope-lag.warning {
+    margin-top: 8px;
+    padding: 10px;
+    background: linear-gradient(90deg, rgba(255,165,0,0.06), rgba(255,165,0,0.02));
+    border-left: 4px solid #ffb020;
+    color: #ffd39b;
+    font-weight: 600;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.slope-lag.warning::before { content: '⚠️ '; margin-right: 6px; }
