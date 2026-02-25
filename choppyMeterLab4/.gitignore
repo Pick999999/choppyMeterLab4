@@ -1,0 +1,13 @@
+# Rust build artifacts
+target/
+choppy-meter-rust/target/
+
+# Local history/IDE files
+.lh/
+.vscode/
+
+# Node modules
+node_modules/
+
+# Prevent recursive loop (if frontend is a symlink to root)
+choppy-meter-rust/frontend/
