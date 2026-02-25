@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Login - Step 2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha3/0.8.0/sha3.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .pin-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 420px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pin-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .pin-header h1 {
+            color: #667eea;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .pin-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .pin-display {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .pin-dot {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #e0e0e0;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .pin-dot.filled {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: #667eea;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .pin-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .pin-key {
+            aspect-ratio: 1;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            font-size: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pin-key:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .pin-key:active {
+            transform: scale(0.95);
+        }
+
+        .pin-key.special {
+            background: #f5f5f5;
+            color: #999;
+        }
+
+        .pin-key.delete {
+            background: #ffebee;
+            color: #f44336;
+            font-size: 20px;
+        }
+
+        .pin-key.delete:hover {
+            background: #f44336;
+            color: white;
+            border-color: #f44336;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            text-align: center;
+        }
+
+        .message.error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+            display: block;
+        }
+
+        .message.success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+            display: block;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid rgba(102, 126, 234, 0.2);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .btn-back {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+            margin-top: 15px;
+        }
+
+        .btn-back:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .security-info {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .security-info .icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pin-container">
+        <div class="pin-header">
+            <h1>🔢 PIN Verification</h1>
+            <p>Step 2 of 2: Enter your 6-digit PIN</p>
+        </div>
+
+        <div class="user-info" id="userInfo">
+            👤 Loading...
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <div class="pin-display" id="pinDisplay">
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+        </div>
+
+        <div class="pin-keypad" id="pinKeypad">
+            <button class="pin-key" data-value="1">1</button>
+            <button class="pin-key" data-value="2">2</button>
+            <button class="pin-key" data-value="3">3</button>
+            <button class="pin-key" data-value="4">4</button>
+            <button class="pin-key" data-value="5">5</button>
+            <button class="pin-key" data-value="6">6</button>
+            <button class="pin-key" data-value="7">7</button>
+            <button class="pin-key" data-value="8">8</button>
+            <button class="pin-key" data-value="9">9</button>
+            <button class="pin-key special" data-value="A">A</button>
+            <button class="pin-key" data-value="0">0</button>
+            <button class="pin-key delete" data-value="DEL">⌫</button>
+            <button class="pin-key special" data-value="B">B</button>
+            <button class="pin-key special" data-value="C">C</button>
+            <button class="pin-key special" data-value="D">D</button>
+        </div>
+
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #667eea; font-size: 14px;">Verifying PIN...</p>
+        </div>
+
+        <button class="btn-back" onclick="goBack()">← Back to Login</button>
+
+        <div class="security-info">
+            <div class="icon">🔐</div>
+            <div>Secured with JWT + SHA3 Encryption</div>
+        </div>
+    </div>
+
+    <script src="js/jsB.js"></script>
+    <script>
+        let pinValue = '';
+        const maxPinLength = 6;
+        const pinDots = document.querySelectorAll('.pin-dot');
+        const messageDiv = document.getElementById('message');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const userInfo = document.getElementById('userInfo');
+
+        // Check if user has JWT from Step 1
+        const jwt = sessionStorage.getItem('auth_jwt');
+        const username = sessionStorage.getItem('username');
+
+        if (!jwt || !username) {
+            // Redirect back to login if no JWT
+            window.location.href = 'login.html';
+        } else {
+            userInfo.textContent = `👤 ${username}`;
+        }
+
+        // PIN keypad event listeners
+        document.getElementById('pinKeypad').addEventListener('click', (e) => {
+            if (e.target.classList.contains('pin-key')) {
+                const value = e.target.dataset.value;
+                handleKeyPress(value);
+            }
+        });
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') {
+                handleKeyPress(e.key);
+            } else if (['A', 'B', 'C', 'D'].includes(e.key.toUpperCase())) {
+                handleKeyPress(e.key.toUpperCase());
+            } else if (e.key === 'Backspace') {
+                handleKeyPress('DEL');
+            }
+        });
+
+        function handleKeyPress(value) {
+            if (value === 'DEL') {
+                if (pinValue.length > 0) {
+                    pinValue = pinValue.slice(0, -1);
+                    updatePinDisplay();
+                }
+            } else {
+                if (pinValue.length < maxPinLength) {
+                    pinValue += value;
+                    updatePinDisplay();
+
+                    // Auto-submit when 6 digits entered
+                    if (pinValue.length === maxPinLength) {
+                        submitPin();
+                    }
+                }
+            }
+        }
+
+        function updatePinDisplay() {
+            pinDots.forEach((dot, index) => {
+                if (index < pinValue.length) {
+                    dot.classList.add('filled');
+                    dot.textContent = pinValue[index];
+                } else {
+                    dot.classList.remove('filled');
+                    dot.textContent = '';
+                }
+            });
+        }
+
+        async function submitPin() {
+            // Disable keypad
+            document.getElementById('pinKeypad').style.pointerEvents = 'none';
+            loadingSpinner.classList.add('active');
+            messageDiv.style.display = 'none';
+
+            try {
+                // Send PIN + JWT to PHP for verification
+                const response = await fetch('https://thepapers.in/Rust/choppyMeterLab4/checkuserstep2.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include', // Include HttpOnly cookies
+                    body: JSON.stringify({
+                        pin: pinValue,
+                        jwt: jwt,
+                        username: username
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Decrypt API Token
+                    if (data.encryptedToken && data.tokenHash) {
+                        // Verify token hash
+                        const computedHash = sha3_512(data.encryptedToken);
+
+                        if (computedHash === data.tokenHash) {
+                            // Store encrypted token in sessionStorage
+                            sessionStorage.setItem('deriv_token', data.encryptedToken);
+                            sessionStorage.setItem('token_hash', data.tokenHash);
+
+                            showMessage('✓ Authentication successful! Connecting to Deriv...', 'success');
+
+                            // Call jsB to connect and authenticate
+                            setTimeout(async () => {
+                                try {
+                                    // Initialize secure connection
+                                    if (typeof window.jsB !== 'undefined') {
+                                        await window.jsB.initializeSecureConnection(data.encryptedToken);
+
+                                        // Redirect to main app (use full URL)
+                                        window.location.href = 'https://thepapers.in/Rust/choppyMeterLab4/indexV3.html';
+                                    } else {
+                                        showMessage('Security module not loaded', 'error');
+                                        resetPin();
+                                    }
+                                } catch (error) {
+                                    console.error('Connection error:', error);
+                                    showMessage('Failed to connect to Deriv', 'error');
+                                    resetPin();
+                                }
+                            }, 1500);
+                        } else {
+                            showMessage('Security verification failed', 'error');
+                            resetPin();
+                        }
+                    } else {
+                        showMessage('Invalid response from server', 'error');
+                        resetPin();
+                    }
+                } else {
+                    showMessage(data.message || 'Invalid PIN. Please try again.', 'error');
+                    resetPin();
+                }
+            } catch (error) {
+                console.error('PIN verification error:', error);
+                showMessage('Connection error. Please try again.', 'error');
+                resetPin();
+            } finally {
+                loadingSpinner.classList.remove('active');
+            }
+        }
+
+        function resetPin() {
+            pinValue = '';
+            updatePinDisplay();
+            document.getElementById('pinKeypad').style.pointerEvents = 'auto';
+        }
+
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+        }
+
+        function goBack() {
+            sessionStorage.setItem('from_logout', 'true');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+
+</html>
