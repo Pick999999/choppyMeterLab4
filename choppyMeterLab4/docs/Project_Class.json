@@ -1,0 +1,150 @@
+{
+  "project_name": "Automated Trading & SMC Analysis System V4",
+  "data_integrity": "Full 12 Classes - All Dependencies Verified",
+  "classes": [
+    {
+      "ClassName": "DerivAPI",
+      "Description": "ศูนย์กลางการเชื่อมต่อ WebSocket และจัดการรับ-ส่งข้อมูลกับเซิร์ฟเวอร์ Deriv",
+      "functions": [
+        {"name": "connect", "description": "สร้างการเชื่อมต่อ WebSocket ไปยัง Deriv API"},
+        {"name": "getHistory", "description": "ดึงข้อมูลแท่งเทียนย้อนหลัง (OHLCV)"},
+        {"name": "subscribeData", "description": "สมัครรับข้อมูลราคา Real-time"},
+        {"name": "onMessage", "description": "คัดแยกประเภทข้อมูล (Tick/History/Error)"},
+        {"name": "send", "description": "ส่งคำขอ JSON ไปยัง API"}
+      ],
+      "external_calls": ["WebSocket Native API", "Deriv Server Endpoint"],
+      "parent_callers": ["appV4.init", "ChoppinessLabV3.connectWS", "DerivTrader.executeTrade"]
+    },
+    {
+      "ClassName": "DerivTrader",
+      "Description": "สมองส่วนการตัดสินใจเทรด และบริหารจัดการหน้าตัก (Martingale)",
+      "functions": [
+        {"name": "startTrading", "description": "เปิดระบบเทรดอัตโนมัติ"},
+        {"name": "checkEntry", "description": "วิเคราะห์จุดเข้าออเดอร์จากผลวิเคราะห์"},
+        {"name": "executeTrade", "description": "ยิงออเดอร์เข้าตลาด"},
+        {"name": "handleMartingale", "description": "คำนวณจำนวนเงินเทรดใหม่เมื่อแพ้"},
+        {"name": "processTradeResult", "description": "บันทึกผลการเทรดและจัดการสถิติ"}
+      ],
+      "external_calls": ["DerivAPI.send", "LocalStorage"],
+      "parent_callers": ["detailsApp.suggestAction", "appV4.handleTradeSignal"]
+    },
+    {
+      "ClassName": "detailsApp",
+      "Description": "หน้าจอควบคุมการเทรดรายสินทรัพย์ และแสดงผล Signal เฉพาะจุด",
+      "functions": [
+        {"name": "init", "description": "เตรียมโครงสร้างหน้าจอและโหลดรายการสินทรัพย์"},
+        {"name": "renderTradePanels", "description": "วาดปุ่มกดและข้อมูลสถานะการเทรดบน UI"},
+        {"name": "updateAnalysis", "description": "อัปเดตข้อมูลวิเคราะห์ล่าสุดลงหน้าจอ"},
+        {"name": "suggestAction", "description": "ประมวลผลสัญญาณ CALL/PUT เพื่อแนะนำผู้ใช้"},
+        {"name": "updateClock", "description": "จัดการเวลา UTC บนหน้าจอ"}
+      ],
+      "external_calls": ["AnalysisGenerator.getSummary", "DerivTrader.startTrading", "DOM API"],
+      "parent_callers": ["Main Dashboard UI", "appV4.createChart"]
+    },
+    {
+      "ClassName": "Indicators",
+      "Description": "คลังสูตรคำนวณทางเทคนิคพื้นฐาน (Math Library)",
+      "functions": [
+        {"name": "ema/sma/rma/hma/ehma", "description": "คำนวณเส้นค่าเฉลี่ยประเภทต่างๆ"},
+        {"name": "rsi", "description": "คำนวณดัชนีกำลังสัมพัทธ์"},
+        {"name": "atr/tr", "description": "คำนวณความผันผวนของราคา"},
+        {"name": "ci", "description": "คำนวณ Choppiness Index"},
+        {"name": "adx", "description": "คำนวณความแรงของเทรนด์"}
+      ],
+      "external_calls": ["Math Standard Lib"],
+      "parent_callers": ["AnalysisGenerator", "ChoppinessLabV3", "SMCIndicator"]
+    },
+    {
+      "ClassName": "AnalysisGenerator",
+      "Description": "ตัวประมวลผลข้อมูลแท่งเทียนให้เป็นข้อมูลสถิติและสัญญาณเทคนิค",
+      "functions": [
+        {"name": "generate", "description": "สร้างชุดข้อมูลการวิเคราะห์จากแท่งเทียนดิบ"},
+        {"name": "calculateMA", "description": "คำนวณเส้นค่าเฉลี่ยหลายชุด"},
+        {"name": "analyzeTrend", "description": "ระบุทิศทางตลาดและความชัน"},
+        {"name": "checkCrossover", "description": "ตรวจสอบการตัดกันของอินดิเคเตอร์"}
+      ],
+      "external_calls": ["Indicators Library"],
+      "parent_callers": ["appV4.refreshAll", "detailsApp.updateAnalysis", "ChoppinessLabV3.updateIndicators"]
+    },
+    {
+      "ClassName": "SMCIndicator (Module)",
+      "Description": "วิเคราะห์โครงสร้างตลาด Smart Money Concepts (Modern)",
+      "functions": [
+        {"name": "calculate", "description": "รัน Logic SMC ทั้งหมด"},
+        {"name": "detectSwingPoints", "description": "หาจุด High/Low ที่สำคัญ"},
+        {"name": "detectStructure", "description": "ตรวจจับ BOS และ CHoCH"},
+        {"name": "detectOrderBlocks", "description": "ระบุโซนแรงซื้อ/ขาย (OB)"}
+      ],
+      "external_calls": ["Indicators.atr", "Math Logic"],
+      "parent_callers": ["appV4.drawSMC", "SMCChartRenderer"]
+    },
+    {
+      "ClassName": "SMCIndicator (Standalone)",
+      "Description": "ตัววิเคราะห์ SMC เวอร์ชันพกพา ใช้งานแยกส่วนได้",
+      "functions": [
+        {"name": "getStructures", "description": "ดึงข้อมูลเส้น BOS/CHoCH"},
+        {"name": "getEqualHighsLows", "description": "ระบุโซนสภาพคล่อง (Liquidity)"},
+        {"name": "_reset", "description": "ล้างข้อมูลเก่าเมื่อเปลี่ยน Asset"}
+      ],
+      "external_calls": ["Internal Memory"],
+      "parent_callers": ["SMCChartRenderer", "Standalone HTML Lab"]
+    },
+    {
+      "ClassName": "appV4",
+      "Description": "ระบบจัดการ Dashboard หลัก แสดงผลแบบ Multi-Chart",
+      "functions": [
+        {"name": "init", "description": "เริ่มต้นระบบ Dashboard และสร้าง Container"},
+        {"name": "refreshAll", "description": "รีเฟรชข้อมูลและกราฟของทุกสินทรัพย์พร้อมกัน"},
+        {"name": "updateChart", "description": "วาดแท่งเทียนและเส้นเทคนิคใหม่"},
+        {"name": "drawSMC", "description": "สั่งให้วาดข้อมูล SMC ลงบนกราฟ"}
+      ],
+      "external_calls": ["LightweightCharts API", "DerivAPI", "AnalysisGenerator"],
+      "parent_callers": ["Window.onload", "setInterval"]
+    },
+    {
+      "ClassName": "appV4_Part2",
+      "Description": "ส่วนขยาย Dashboard จัดการ Settings และรายงานข้อมูลละเอียด",
+      "functions": [
+        {"name": "renderSelectedAnalysis", "description": "แสดงตารางวิเคราะห์เชิงลึก"},
+        {"name": "saveSettings", "description": "บันทึกการตั้งค่าลง LocalStorage"},
+        {"name": "loadEmaSettings", "description": "ดึงค่าการตั้งค่า EMA มาใช้"}
+      ],
+      "external_calls": ["LocalStorage", "DOM API", "ChoppyMeter.setValue"],
+      "parent_callers": ["appV4.onChartClick"]
+    },
+    {
+      "ClassName": "SMCChartRenderer",
+      "Description": "ตัวจัดการงานกราฟิก วาดรูปทรงเรขาคณิตเทคนิคลงบนกราฟ",
+      "functions": [
+        {"name": "render", "description": "ฟังก์ชันหลักในการวาด OB, FVG และ BOS"},
+        {"name": "renderOrderBlocks", "description": "วาดกล่องสี OB พร้อมระดับราคา"},
+        {"name": "renderFairValueGaps", "description": "วาดโซน FVG"}
+      ],
+      "external_calls": ["LightweightCharts Series API", "SMCIndicator"],
+      "parent_callers": ["appV4.drawSMC", "ChoppinessLabV3"]
+    },
+    {
+      "ClassName": "ChoppyMeter",
+      "Description": "Visualization แสดงผลความผันผวนแบบเข็มไมล์",
+      "functions": [
+        {"name": "setValue", "description": "กำหนดค่าดัชนี (0-100)"},
+        {"name": "render", "description": "วาดโครงสร้าง Meter ลง Canvas"},
+        {"name": "animate", "description": "ทำให้เข็มเคลื่อนที่แบบนุ่มนวล"}
+      ],
+      "external_calls": ["HTML5 Canvas Context", "requestAnimationFrame"],
+      "parent_callers": ["appV4_Part2.renderSelectedAnalysis"]
+    },
+    {
+      "ClassName": "ChoppinessLabV3",
+      "Description": "ระบบห้องทดลองวิเคราะห์กลยุทธ์และแสดงผล Trend Zones",
+      "functions": [
+        {"name": "initCharts", "description": "สร้างกราฟหลักและกราฟรอง 3 ตัว"},
+        {"name": "createCrossoverZones", "description": "สร้างข้อมูลแถบสีพื้นหลังตามเทรนด์"},
+        {"name": "updateIndicators", "description": "คำนวณและวาดเส้นเทคนิคในแล็บ"},
+        {"name": "updateTooltip", "description": "แสดงข้อมูลราคาวิเคราะห์ตามจุดเมาส์"}
+      ],
+      "external_calls": ["LightweightCharts API", "AnalysisGenerator", "DerivAPI"],
+      "parent_callers": ["Lab.html Page", "Window.onload"]
+    }
+  ]
+}
