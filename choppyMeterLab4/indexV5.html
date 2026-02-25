@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choppy Meter V4 - SMC Integration</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/styleV2.css">
+    <link rel="stylesheet" href="css/styleV3.css">
+    <style>
+        /* Micro Tick Indy Styles - Exact Match to microIndy/index.html */
+        .arrows-container {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow-x: auto;
+            min-height: 150px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
+            /* Ensure it stands out in dark mode but keeps original light look */
+            color: #333;
+        }
+
+        .arrow-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-width: 50px;
+        }
+
+        .arrow-up {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 15px solid #00ff88;
+            position: relative;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            transition: all 0.3s;
+        }
+
+        .arrow-up::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 20px;
+            background: #00ff88;
+            left: 50%;
+            top: 15px;
+            transform: translateX(-50%);
+        }
+
+        .arrow-down {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 15px solid #ff4444;
+            position: relative;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            transition: all 0.3s;
+        }
+
+        .arrow-down::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 20px;
+            background: #ff4444;
+            left: 50%;
+            bottom: 15px;
+            transform: translateX(-50%);
+        }
+
+        .arrow-label {
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .arrow-change {
+            font-size: 10px;
+            color: #999;
+            text-align: center;
+        }
+
+        .arrow-time {
+            font-size: 9px;
+            color: #aaa;
+            text-align: center;
+        }
+
+        /* Minute Summary Card */
+        .minute-summary {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 140px;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            margin: 0 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            flex-shrink: 0;
+        }
+
+        .minute-summary.current {
+            border: 2px solid #00ff88;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .minute-summary-time {
+            font-size: 11px;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .minute-summary-counts {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .count-badge {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .count-badge.up {
+            background: rgba(0, 255, 136, 0.9);
+            color: #004d2a;
+        }
+
+        .count-badge.down {
+            background: rgba(255, 68, 68, 0.9);
+            color: #4d0000;
+        }
+
+        .minute-summary-impact {
+            font-size: 10px;
+            color: white;
+            text-align: center;
+            margin-top: 4px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            width: 100%;
+        }
+
+        .impact-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 2px 0;
+        }
+
+        .impact-label {
+            opacity: 0.8;
+        }
+
+        .impact-value {
+            font-weight: bold;
+        }
+
+        .impact-value.positive {
+            color: #00ff88;
+        }
+
+        .impact-value.negative {
+            color: #ff4444;
+        }
+
+        .net-impact {
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 6px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: white;
+            color: #333;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .net-impact.positive {
+            color: #00aa66;
+        }
+
+        .net-impact.negative {
+            color: #ff4444;
+        }
+
+        .text-green {
+            color: #22c55e !important;
+        }
+
+        .text-red {
+            color: #ef4444 !important;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha3/0.8.0/sha3.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
+
+    <script src="https://thepapers.in/phpAllPredictAPI/autoSaveInputs.js"></script>
+
+
+    <!--
+	<script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+	<script src="https://thepapers.in/strategy/colorAlter/colorChangeAnaly.js" ></script>
+	<script src="https://thepapers.in/js/indicator.js" ></script>
+
+	<script>// เรียก result = mainAlterColorAnaly(candleData)</script>
+	<script src="https://thepapers.in/phpAllPredictAPI/autoSaveInputs.js" ></script>
+	<script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+	  -->
+
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-panel">
+            <div class="header-content">
+                <div class="logo">
+                    <i data-lucide="gauge"></i>
+                    <h1>Choppy Meter <span class="highlight">V4</span></h1>
+                </div>
+                <div class="status-bar">
+                    <span id="connection-status" class="status-pill disconnected">
+                        <span class="dot"></span> Disconnected
+                    </span>
+                    <button class="btn-toggle-connect" id="btn-connect-toggle" onclick="appV4.toggleConnection()">
+                        <i data-lucide="power"></i> Stop
+                    </button>
+                    <!-- Settings Button with Emoji Icon -->
+                    <button class="btn-settings-modal" id="btn-settings-modal" onclick="appV4.openSettingsModal()"
+                        title="Settings">
+                        ⚙️
+                    </button>
+
+                    <!-- Stop Meter Checkbox -->
+                    <label
+                        style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #fbbf24; cursor: pointer; padding: 4px 8px; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 6px;"
+                        title="หยุด refresh Choppy Meter ขณะเทรด (ติ๊กเพื่อหยุด, เอาออกเพื่อกลับมาดู)">
+                        <input type="checkbox" id="chkStopMeterChoppy" onchange="appV4.toggleStopMeter()"
+                            style="accent-color: #fbbf24; width: 14px; height: 14px;">
+                        ⏸️ Stop Meter
+                    </label>
+
+                    <!-- Authorization Section Moved to Bottom Menu -->
+
+                    <!-- User Info & Logout -->
+                    <div class="user-info-wrapper"
+                        style="display: flex; align-items: center; gap: 8px; margin-left: 10px;">
+                        <span id="user-info" style="font-size: 13px; color: var(--text-muted);"></span>
+                        <button class="btn-logout" onclick="window.jsB.logout()" title="Logout"
+                            style="padding: 6px 12px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; display: none;"
+                            id="btn-logout">
+                            🚪 Logout
+                        </button>
+                    </div>
+                    <div class="clock-wrapper">
+                        <div class="analog-clock">
+                            <div class="hand hour" id="clock-hour"></div>
+                            <div class="hand minute" id="clock-minute"></div>
+                            <div class="hand second" id="clock-second"></div>
+                            <div class="center-dot"></div>
+                        </div>
+                        <span id="server-time" class="time-display digital-clock">--:--:--</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Top 8 Dashboard Grid -->
+        <main class="top8-grid" id="asset-grid">
+            <!-- Cards will be injected here via JS -->
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Initializing Market Data...</p>
+            </div>
+        </main>
+
+        <!-- Selected Asset Chart Panel -->
+        <section class="selected-chart-panel glass-panel hidden" id="selected-chart-panel">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <i data-lucide="activity"></i>
+                    <h3 id="selected-asset-name">Select an asset</h3>
+                    <span class="selected-symbol" id="selected-asset-symbol"></span>
+                </div>
+                <div class="chart-controls" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <!-- SMC Toggles -->
+                    <div class="smc-control" style="position: relative;">
+                        <button class="btn-smc-toggle" title="Toggle SMC Overlay" id="btn-smc-toggle"
+                            onclick="appV4.toggleSMC()"
+                            style="padding: 6px 12px; background: rgba(16, 185, 129, 0.3); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.5); border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                            <span>⚡ SMC</span>
+                            <span id="smc-status" style="font-size: 10px; opacity: 0.7;">ON</span>
+                        </button>
+                    </div>
+
+                    <!-- EMA Toggles -->
+                    <div class="ema-control"
+                        style="display: flex; gap: 6px; padding: 4px 8px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 6px; align-items: center;">
+                        <span style="font-size: 11px; color: #60a5fa; font-weight: 600;">EMA:</span>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 2px;"
+                            title="Toggle EMA Short">
+                            <input type="checkbox" id="quick-ema-short" checked onchange="appV4.toggleEma('short')"
+                                style="accent-color: #3b82f6;">
+                            <span style="font-size: 10px; color: #93c5fd;">S</span>
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 2px;"
+                            title="Toggle EMA Medium">
+                            <input type="checkbox" id="quick-ema-medium" checked onchange="appV4.toggleEma('medium')"
+                                style="accent-color: #f59e0b;">
+                            <span style="font-size: 10px; color: #fcd34d;">M</span>
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 2px;"
+                            title="Toggle EMA Long">
+                            <input type="checkbox" id="quick-ema-long" checked onchange="appV4.toggleEma('long')"
+                                style="accent-color: #8b5cf6;">
+                            <span style="font-size: 10px; color: #c4b5fd;">L</span>
+                        </label>
+                    </div>
+
+                    <!-- Choppy Zones Toggle -->
+                    <div class="zones-control" style="position: relative;">
+                        <div id="" class="bordergray flex" style='display:flex'>
+
+
+                            <button class="btn-zones-toggle" id="btn-zones-toggle" onclick="appV4.toggleChoppyZones()"
+                                title="Toggle Background Zones"
+                                style="padding: 6px 12px; background: rgba(139, 92, 246, 0.3); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.5); border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                                <span style="font-size: 14px;">🎨</span> Zones
+                                <span id="zones-status" style="font-size: 10px; opacity: 0.7;">OFF</span>
+                            </button>
+                            <button class="btn-zones-settings" id="btn-zones-settings"
+                                onclick="appV4.openZonesSettingsModal()" title="Zone Settings"
+                                style="padding: 6px 8px; background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 6px; font-size: 11px; cursor: pointer; margin-left: 4px;">
+                                ⚙️
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Choppy Indicator Display -->
+                    <div class="ci-display" id="ci-display-panel"
+                        style="display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 6px;"
+                        title="Choppy Indicator: Current value and last 5 directions">
+                        <span style="font-size: 12px; color: #fbbf24; font-weight: 600;">CI:</span>
+                        <span id="ci-current-value"
+                            style="font-size: 14px; font-weight: bold; color: #fcd34d; font-family: monospace; min-width: 45px;">--</span>
+                        <span style="font-size: 10px; color: rgba(251, 191, 36, 0.6);">|</span>
+                        <span id="ci-direction-arrows"
+                            style="font-size: 14px; letter-spacing: 2px; font-family: monospace;"
+                            title="Last 5 candles direction (newest→oldest)">-----</span>
+                    </div>
+
+                    <!-- Alternate Colors Zone Button -->
+                    <button id="btn-alt-colors" onclick="appV4.toggleAlternateColorZones()"
+                        style="padding: 6px 12px; background: rgba(236, 72, 153, 0.3); color: #f9a8d4; border: 1px solid rgba(236, 72, 153, 0.5); border-radius: 6px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s;"
+                        title="Highlight zones with alternating Red-Green candles (4+ consecutive)">
+                        <span style="font-size: 12px;">🔀</span> Alt Colors
+                        <span id="alt-colors-status" style="font-size: 9px; opacity: 0.7;">OFF</span>
+                    </button>
+
+                    <!-- StatusCode Marker Controls -->
+                    <div class="statuscode-control"
+                        style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px;">
+                        <input type="text" id="txtStatusCode" placeholder="25,30,38"
+                            style="width: 100px; padding: 4px 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 4px; color: #10b981; font-size: 11px; font-family: monospace;"
+                            title="Enter StatusCode values separated by comma">
+                        <button id="btn-show-marker" onclick="appV4.showStatusCodeMarkers()"
+                            style="padding: 4px 10px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; white-space: nowrap;"
+                            title="Show markers for specified StatusCodes">
+                            📍 Show Marker
+                        </button>
+                        <button id="btn-clear-marker" onclick="appV4.clearStatusCodeMarkers()"
+                            style="padding: 4px 8px; background: rgba(239, 68, 68, 0.3); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 4px; font-size: 11px; cursor: pointer;"
+                            title="Clear all markers">
+                            ✕
+                        </button>
+                        <input type="checkbox" id="chkAutoShowMarker"
+                            style="width: 14px; height: 14px; accent-color: #10b981;">
+                        <label
+                            style="display: flex; align-items: center; gap: 4px; font-size: 10px; color: #a5f3fc; cursor: pointer; white-space: nowrap;"
+                            title="Auto-show markers on new candles">
+
+                            Auto Show Marker
+                        </label>
+
+                    </div>
+                    <hr>
+
+                    <!-- Legend -->
+                    <div class="chart-legend" id="chart-legend"
+                        style="display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:8px;background:rgba(0,0,0,0.18);border:1px solid white;">
+                        <div class="legend-item">
+                            <span class="legend-swatch ob-bear"></span>
+                            <input type="checkbox" id="chk-ob-bear" checked onchange="appV4.handleSmcDisplayToggle()">
+                            OB Bear
+                            <span class="legend-label">Order Block (Bear)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-swatch ob-bull"></span>
+                            <input type="checkbox" id="chk-ob-bull" checked onchange="appV4.handleSmcDisplayToggle()">
+                            OB Bull
+                            <span class="legend-label">Order Block (Bull)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-swatch fvg-bull"></span>
+                            <input type="checkbox" id="chk-fvg-bull" checked onchange="appV4.handleSmcDisplayToggle()">
+                            FVG Bull
+                            <span class="legend-label">FVG (Bull)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-swatch fvg-bear"></span>
+                            <input type="checkbox" id="chk-fvg-bear" checked onchange="appV4.handleSmcDisplayToggle()">
+                            FVG Bear
+                            <span class="legend-label">FVG (Bear)</span>
+                            <div class="legend-item">
+                                <input type="checkbox" id="chk-strong-weak-alert"
+                                    onchange="appV4.handleSmcDisplayToggle()">
+                                ⚠️ S/W Alert
+                                <span class="legend-label">Alert & Thick Lines</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SMC Display Toggles -->
+                    <div class="smc-display-toggles" style="display:flex;gap:8px;align-items:center;margin-left:8px;">
+                        <label style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+
+                        </label>
+                        <label style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+
+                        </label>
+                        <label style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+                            FVG Bull
+                        </label>
+                        <label style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+                            FVG Bear
+                        </label>
+                    </div>
+
+                    <button class="btn-secondary btn-sm" onclick="appV4.closeChartPanel()">
+                        <i data-lucide="x"></i> Close
+                    </button>
+                </div>
+
+
+            </div>
+            <div class="chart-content">
+                <div>
+                    <div class="chart-container" id="main-chart-container"></div>
+
+                    <!-- Support/Resistance Line Drawing Controls -->
+                    <div id="sr-draw-controls"
+                        style="margin-top: 6px; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(0,0,0,0.35); border-radius: 8px; border: 1px solid rgba(0, 229, 255, 0.2);">
+                        <label
+                            style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: #00e5ff; font-weight: 600; padding: 4px 10px; background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 6px; transition: all 0.2s;"
+                            title="เมื่อเปิด: คลิกบนกราฟเพื่อตีเส้นแนวรับ/แนวต้าน">
+                            <input type="checkbox" id="chkSRDrawMode" onchange="appV4.toggleSRDrawMode()"
+                                style="accent-color: #00e5ff; width: 15px; height: 15px;">
+                            ✏️ Draw S/R
+                        </label>
+                        <span style="font-size: 11px; color: #94a3b8;">
+                            Lines: <strong id="srLineCount" style="color: #00e5ff;">0</strong>
+                        </span>
+                        <button onclick="appV4.removeLastSRLine()"
+                            style="padding: 4px 10px; background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 5px; font-size: 11px; cursor: pointer; transition: all 0.2s;"
+                            title="ลบเส้นล่าสุด">
+                            ↩️ Undo
+                        </button>
+                        <button onclick="appV4.clearSRLines()"
+                            style="padding: 4px 10px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 5px; font-size: 11px; cursor: pointer; transition: all 0.2s;"
+                            title="ลบเส้นแนวรับ/แนวต้านทั้งหมด">
+                            🗑️ Clear All
+                        </button>
+                        <span style="font-size: 10px; color: #64748b; margin-left: auto;">
+                            ติ๊กแล้วคลิกบนกราฟเพื่อวาดเส้น S/R
+                        </span>
+                    </div>
+
+                    <!-- New Micro Tick Container as requested -->
+                    <div class="micro-tick-wrapper"
+                        style="margin-top: 10px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <h4 style="margin:0; color: #a5f3fc; font-size: 14px;">Micro Tick Stream</h4>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div id="microTickSummary" style="font-size: 13px; font-weight: bold;"></div>
+                                <label
+                                    style="font-size: 12px; color: #ccc; display: flex; align-items: center; gap: 6px;">
+                                    Display Limit (N):
+                                    <input type="number" id="microTickLength" value="20" min="5" max="200"
+                                        style="width: 60px; padding: 2px 5px; border-radius: 4px; border: 1px solid #444; background: #222; color: white;">
+                                </label>
+                            </div>
+                        </div>
+                        <div id="microTickcontainer"
+                            style="display: flex; gap: 5px; overflow-x: auto; align-items: center; min-height: 50px; padding: 5px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+                            <!-- Icons will be injected here -->
+                        </div>
+                    </div>
+                    <div id="" class="bordergray flex">
+
+                        <!-- Secondary Track Order Table (Below Chart) -->
+                        <div class="secondary-track-order-panel"
+                            style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                            <h4
+                                style="margin: 0 0 10px 0; font-size: 14px; color: #0080ff; display:flex; align-items:center; gap:6px;">
+                                <i data-lucide="list-ordered"></i> Active Orders (This Asset)
+                            </h4>
+                            <div class="track-order-table-wrapper" style="max-height: 200px; overflow-y: auto;">
+                                <table class="track-order-table" id="secondary-track-order-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Contract ID</th>
+                                            <th>Type</th>
+                                            <th>Buy Price</th>
+                                            <th>Profit/Loss</th>
+                                            <th>Time Left</th>
+                                            <th>Target</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="secondary-track-order-tbody">
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; color: var(--text-muted);">No
+                                                active
+                                                orders for this asset</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="selected-analysis-panel" id="selected-analysis-panel">
+                    <h4><i data-lucide="bar-chart-2"></i> EMA Slope & Crossover</h4>
+                    <div class="analysis-content" id="selected-analysis-content">
+                        <!-- Will be populated by JS -->
+                    </div>
+                </div>
+
+
+            </div>
+
+            <!-- Analysis Data Viewer -->
+            <div class="analysis-data-viewer"
+                style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px;display:none">
+                <div class="viewer-header"
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h4 style="margin: 0; font-size: 14px; color: var(--text-secondary);">
+                        <i data-lucide="code-2"></i> Analysis Data (JSON)
+                        <span id="analysis-data-version"
+                            style="font-size: 11px; padding: 2px 6px; background: var(--accent-primary); border-radius: 4px; margin-left: 8px;">V1</span>
+                    </h4>
+                    <div class="viewer-controls" style="display: flex; gap: 6px;">
+                        <button class="btn-sm" onclick="appV4.refreshAnalysisData()" title="Refresh"
+                            style="padding: 4px 8px; font-size: 11px;">
+                            <i data-lucide="refresh-cw"></i> Refresh
+                        </button>
+                        <button class="btn-sm" onclick="appV4.copyAnalysisData()" title="Copy to Clipboard"
+                            style="padding: 4px 8px; font-size: 11px;">
+                            <i data-lucide="copy"></i> Copy
+                        </button>
+                        <button class="btn-sm" onclick="appV4.toggleAnalysisViewer()" id="btn-toggle-analysis"
+                            title="Toggle" style="padding: 4px 8px; font-size: 11px;">
+                            <i data-lucide="chevron-down"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="analysis-viewer-content" style="display: block;">
+                    <div
+                        style="display: flex; gap: 8px; margin-bottom: 6px; font-size: 11px; color: var(--text-muted);">
+                        <span>Records: <strong id="analysis-record-count">0</strong></span>
+                        <span>Symbol: <strong id="analysis-current-symbol">-</strong></span>
+                    </div>
+                    <textarea id="analysis-data-textarea" readonly
+                        style="width: 100%; height: 200px; background: rgba(0,0,0,0.5); color: #a5f3fc; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 10px; font-family: 'Courier New', monospace; font-size: 11px; resize: vertical;"
+                        placeholder="Select an asset to view analysis data..."></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trading Panel -->
+        <section class="trading-panel glass-panel" id="trading-panel">
+            <div class="trading-panel-header">
+                <h3><i data-lucide="trending-up"></i> Auto Trading</h3>
+                <div class="trading-clock-wrapper">
+                    <div class="trading-clock" id="trading-clock">
+                        <span class="clock-time" id="trading-clock-time">--:--:--</span>
+                        <span class="clock-label">Server Time</span>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Trading Controls -->
+            <div class="trading-controls">
+
+                <!-- Row 1: Trading Inputs -->
+                <div class="trading-settings-grid" style="display: flex;  margin-bottom: 12px;">
+                    <label style="font-size:12px;color:var(--text-muted);display:flex;flex-direction:column;gap:4px;">
+                        Trade Type
+                        <select id="trade-type"
+                            style="padding:6px;border-radius:6px;background:rgba(0,0,0,0.2);color:white;border:1px solid rgba(255,255,255,0.04);width:100%;">
+                            <option value="1">Fixed</option>
+                            <option value="2">Martingale</option>
+                        </select>
+                    </label>
+
+                    <label style="font-size:12px;color:var(--text-muted);display:flex;flex-direction:column;gap:4px;">
+                        Money/Trade
+                        <input id="trade-money" type="number" step="0.01" min="0.01" value="1.00"
+                            style="padding:6px;border-radius:6px;background:rgba(0,0,0,0.2);color:white;border:1px solid rgba(255,255,255,0.04);width:100%;" />
+                    </label>
+
+                    <label style="font-size:12px;color:var(--text-muted);display:flex;flex-direction:column;gap:4px;">
+                        Target
+                        <input id="target-money" type="number" step="0.01" min="0" value="10.00"
+                            style="padding:6px;border-radius:6px;background:rgba(0,0,0,0.2);color:white;border:1px solid rgba(255,255,255,0.04);width:100%;" />
+                    </label>
+
+                    <div style="display:flex; gap:8px;">
+                        <label
+                            style="font-size:12px;color:var(--text-muted);display:flex;flex-direction:column;gap:4px;flex:1;">
+                            Duration
+                            <input id="trade-duration" type="number" min="1" step="1" value="1"
+                                style="padding:6px;border-radius:6px;background:rgba(0,0,0,0.2);color:white;border:1px solid rgba(255,255,255,0.04);width:100%;" />
+                        </label>
+                        <label
+                            style="font-size:12px;color:var(--text-muted);display:flex;flex-direction:column;gap:4px;flex:1;">
+                            Unit
+                            <select id="trade-duration-unit"
+                                style="padding:6px;border-radius:6px;background:rgba(0,0,0,0.2);color:white;border:1px solid rgba(255,255,255,0.04);width:100%;">
+                                <option value="minutes">Minutes</option>
+                                <option value="ticks">Ticks</option>
+                                <option value="hours">Hours</option>
+                                <option value="seconds">Seconds</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+
+
+                <!-- Row 2: Condition Panel -->
+                <div class="trading-condition-panel"
+                    style="margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.1);">
+                    <span
+                        style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px;font-weight:600;">Condition
+                        Strategy:</span>
+                    <div style="display:flex; gap: 15px; align-items:center;">
+                        <label
+                            style="display:flex;align-items:center;gap:6px;font-size:13px;color:white;cursor:pointer;background:rgba(139, 92, 246, 0.2);padding:4px 12px;border-radius:20px;border:1px solid rgba(139, 92, 246, 0.4);">
+                            <input type="radio" name="trade-condition" value="auto" checked
+                                onchange="DerivTrader.loadSettings()" style="accent-color:#8b5cf6;">
+                            Auto (Both)
+                        </label>
+                        <label
+                            style="display:flex;align-items:center;
+							font-size:13px;color:#86efac;
+							cursor:pointer;background:rgba(74, 222, 128, 0.15);padding:4px 4px;border-radius:20px;border:1px solid rgba(74, 222, 128, 0.4);width:150px">
+                            <input type="radio" name="trade-condition" value="call"
+                                onchange="DerivTrader.loadSettings()" style="accent-color:#4ade80;">&nbsp;&nbsp;
+                            CALL Only
+                        </label>
+                        <label
+                            style="display:flex;align-items:center;gap:6px;font-size:13px;color:#fca5a5;cursor:pointer;background:rgba(248, 113, 113, 0.15);padding:4px 12px;border-radius:20px;border:1px solid rgba(248, 113, 113, 0.4);">
+                            <input type="radio" name="trade-condition" value="put" onchange="DerivTrader.loadSettings()"
+                                style="accent-color:#f87171;">
+                            PUT Only
+                        </label>
+                        <hr>
+                        <button class="btn-start-trading" id="btn-start-trading" onclick="DerivTrader.startTrading()"
+                            style="flex:1; min-width: 120px;">
+                            <i data-lucide="play"></i> Start Trading
+
+                            <button class="btn-stop-trading" id="btn-stop-trading" onclick="DerivTrader.stopTrading()"
+                                disabled style="flex:1; min-width: 120px;">
+                                <i data-lucide="square"></i> Stop Trading
+                            </button>
+                            <button class="btn-trade warning" onclick="DerivTrader.forceStartTrading()"
+                                style="margin-top: 10px; background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.4); color: #fde047; padding: 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500;">
+                                <i data-lucide="zap"></i> Start Immediately
+                            </button>
+
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- Row 3: Action Buttons 
+                <div class="trading-actions-row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <button class="btn-start-trading" id="btn-start-trading" onclick="DerivTrader.startTrading()"
+                        style="flex:1; min-width: 120px;">
+                        <i data-lucide="play"></i> Start Trading
+                    </button>
+                    <button class="btn-stop-trading" id="btn-stop-trading" onclick="DerivTrader.stopTrading()" disabled
+                        style="flex:1; min-width: 120px;">
+                        <i data-lucide="square"></i> Stop Trading
+                    </button>
+
+
+                    <div class="trading-symbol-display"
+                        style="margin-left:auto; display:flex; align-items:center; gap:8px; background:rgba(0,0,0,0.3); padding:6px 10px; border-radius:6px;">
+                        <span class="label" style="font-size:11px; color:#aaa;">Symbol:</span>
+                        <span class="symbol" id="trading-symbol" style="font-weight:bold; color:white;">-</span>
+                        <label class="lock-symbol-toggle"
+                            style="display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 11px; color: #94a3b8; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 8px; margin-left: 4px;">
+                            <input type="checkbox" id="chk-lock-symbol" style="accent-color: #8b5cf6;">
+                            <i data-lucide="lock" style="width: 12px; height: 12px;"></i>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Start Immediately Button
+                <button class="btn-trade warning" onclick="DerivTrader.forceStartTrading()"
+                    style="width: 100%; margin-top: 10px; background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.4); color: #fde047; padding: 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500;">
+                    <i data-lucide="zap"></i> Start Immediately
+                </button>
+				-->
+
+                <div class="trading-status" id="trading-status" style="margin-top:10px;">Ready to trade</div>
+            </div>
+
+            <!-- Lag Alert Controls -->
+            <div class="trading-lag-controls" style="display:flex;align-items:center;gap:12px;margin-top:8px;">
+                <label style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;">
+                    <input type="checkbox" id="chk-lag-sound" checked /> Enable lag sound alerts
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;">
+                    <input type="checkbox" id="chk-prevent-duplicate" checked /> Prevent duplicate trade
+                </label>
+                <div id="lag-status-label" style="color:#ffd39b;font-weight:600;font-size:13px;">Lag status: <span
+                        id="lag-status-value">—</span></div>
+                <audio id="lag-alert-audio" preload="auto" src="sounds/notification-ding-dong-432437.mp3"></audio>
+            </div>
+
+
+            <!-- Trading Statistics -->
+            <div class="trading-stats-grid">
+                <div class="stat-card stat-balance">
+                    <div class="stat-label">Account</div>
+                    <div class="stat-value" id="stat-balance">0.00</div>
+                </div>
+                <div class="stat-card stat-profit">
+                    <div class="stat-label">Session P/L</div>
+                    <div class="stat-value" id="stat-profit-loss">0.00</div>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 4px 0;">
+                    <div class="stat-thb" id="stat-profit-thb" style="font-size: 20px; color: yellow; margin-top: 2px;">
+                        ฿0.00</div>
+                    <div class="stat-target" id="stat-target-progress">Target: $0.00</div>
+                </div>
+                <div class="stat-card stat-profit">
+                    <div class="stat-label">Today P/L</div>
+                    <div class="stat-value" id="stat-daily-profit-loss">0.00</div>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 4px 0;">
+                    <div class="stat-thb" id="stat-daily-profit-thb"
+                        style="font-size: 20px; color: yellow; margin-top: 2px;">
+                        ฿0.00</div>
+                </div>
+                <div class="stat-card stat-win">
+                    <div class="stat-label">Win</div>
+                    <div class="stat-value" id="stat-num-win">0</div>
+                </div>
+                <div class="stat-card stat-loss">
+                    <div class="stat-label">Loss</div>
+                    <div class="stat-value" id="stat-num-loss">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Win Con</div>
+                    <div class="stat-value" id="stat-win-con">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Loss Con</div>
+                    <div class="stat-value" id="stat-loss-con">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Status</div>
+                    <div class="stat-value" id="stat-win-status">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Current Stake</div>
+                    <div class="stat-value" id="stat-current-stake">1.00</div>
+                </div>
+                <!-- Break-even Monitor Stats (only updates when profit 0-0.1) -->
+                <div class="stat-card">
+                    <div class="stat-label">P (0-0.1)</div>
+                    <div class="stat-value" id="stat-profit-zero">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Entry Price</div>
+                    <div class="stat-value" id="stat-profit-zero-diff">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Price</div>
+                    <div class="stat-value" id="stat-zero-current-price">-</div>
+                </div>
+            </div>
+
+            <!-- Track Order Table -->
+            <div class="track-order-section">
+                <!-- Price Change Arrows Section -->
+                <div class="micro-arrows-section" style="margin-bottom: 20px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="margin: 0; display: flex; align-items: center; gap: 8px; color: #1e3c72;">
+                            <span
+                                style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 2px solid #1e3c72; border-radius: 4px;">
+                                <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                            </span>
+                            <span style="color: #1e3c72; font-weight: bold;">Price Change Arrows (Last Candles)</span>
+                        </h4>
+                        <div id="" class="bordergray flex">
+                            Profit :: <input type="text" id="profitCheck">
+                            PriceDiff :: <input type="text" id="PriceDiffCheck">
+
+                        </div>
+                        <label
+                            style="display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer; color: var(--text-secondary);">
+                            <input type="checkbox" id="chk-show-micro-arrows" onchange="appV4.toggleMicroArrows()">
+                            Show Micro Tick Arrows
+                        </label>
+                    </div>
+
+                    <!-- Legend -->
+                    <div id="micro-arrows-legend"
+                        style="display: none; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                        <div
+                            style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 12px; color: #666;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <div style="width: 16px; height: 16px; background: #00ff88; border-radius: 2px;"></div>
+                                <span>Green Up (Price Increase)</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <div style="width: 16px; height: 16px; background: #ff4444; border-radius: 2px;"></div>
+                                <span>Red Down (Price Decrease)</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span>• Darker = Bigger change</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Micro Tick Arrows Container -->
+                    <div id="micro-arrows-container" class="arrows-container" style="display: none;">
+                        <div style="color: #999; text-align: center; width: 100%; font-size: 12px;">
+                            Waiting for data...
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h4 style="margin: 0;"><i data-lucide="list-ordered"></i> Track Orders</h4>
+                </div>
+
+                <div class="track-order-table-wrapper">
+                    <table class="track-order-table">
+                        <thead>
+                            <tr>
+                                <th>ลำดับ</th>
+                                <th>Contract ID</th>
+                                <th>Symbol</th>
+                                <th>ประเภท</th>
+                                <th>ราคาซื้อ</th>
+                                <th>Payout</th>
+                                <th>กำไร/ขาดทุน</th>
+                                <th>เวลาซื้อ</th>
+                                <th>เวลาหมดอายุ</th>
+                                <th>เวลาที่เหลือ</th>
+                                <th>Min Profit</th>
+                                <th>Max Profit</th>
+                                <th style="min-width: 140px;">
+                                    Target Profit
+                                    <div style="display: flex; gap: 4px; margin-top: 4px;">
+                                        <input type="number" id="batch-target-profit" placeholder="All"
+                                            style="width: 60px; padding: 2px 4px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; font-size: 11px;">
+                                        <button onclick="DerivTrader.applyBatchTargetProfit()"
+                                            style="padding: 2px 6px; font-size: 10px; background: #6366f1; border: none; border-radius: 3px; color: white; cursor: pointer;">Set</button>
+                                    </div>
+                                </th>
+                                <th>การจัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="track-order-tbody">
+                            <tr>
+                                <td colspan="13" style="text-align: center; color: var(--text-muted);">No orders yet
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- EMA Analysis Panel (Hidden - kept for reference) -->
+        <section class="ema-analysis-panel glass-panel hidden" id="ema-analysis-panel">
+            <h3><i data-lucide="trending-up"></i> EMA Slope & Crossover Analysis (All Assets)</h3>
+            <div class="ema-analysis-grid" id="ema-analysis-grid">
+                <!-- Analysis cards will be injected here -->
+                <div class="loading-mini">Waiting for data...</div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Settings Modal with Tabs -->
+    <div class="modal-overlay hidden" id="settings-modal">
+        <div class="modal-box modal-box-lg">
+            <div class="modal-header">
+                <h3><i data-lucide="settings"></i> Application Settings</h3>
+                <button class="modal-close-btn" onclick="appV4.closeSettingsModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="controls" onclick="appV4.switchTab('controls')">
+                    🎮 Controls
+                </button>
+                <button class="tab-btn" data-tab="ema" onclick="appV4.switchTab('ema')">
+                    📊 EMA Settings
+                </button>
+                <button class="tab-btn" data-tab="trading" onclick="appV4.switchTab('trading')">
+                    💰 Trading
+                </button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div class="modal-content">
+                <!-- Controls Tab -->
+                <div class="tab-content active" id="tab-controls">
+                    <div class="controls-grid">
+                        <!-- Timeframe -->
+                        <div class="control-group">
+                            <label>Timeframe</label>
+                            <div class="select-wrapper">
+                                <select id="timeframe-select" onchange="appV4.handleTimeframeChange()">
+                                    <option value="60">1 Minute</option>
+                                    <option value="180">3 Minutes</option>
+                                    <option value="300">5 Minutes</option>
+                                    <option value="600">10 Minutes</option>
+                                    <option value="900">15 Minutes</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Refresh Interval -->
+                        <div class="control-group">
+                            <label>Auto Refresh</label>
+                            <div class="select-wrapper">
+                                <select id="refresh-interval-select" onchange="appV4.handleRefreshIntervalChange()">
+                                    <option value="60000">1 Minute</option>
+                                    <option value="180000">3 Minutes</option>
+                                    <option value="300000">5 Minutes</option>
+                                    <option value="600000">10 Minutes</option>
+                                    <option value="900000">15 Minutes</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Alert Toggle -->
+                        <div class="control-group">
+                            <label>Crossover Alert</label>
+                            <label class="toggle-switch-lg">
+                                <input type="checkbox" id="beep-toggle" onchange="appV4.toggleBeep()">
+                                <span class="slider-lg"></span>
+                                <span class="toggle-label">🔔 Beep on EMA Crossover</span>
+                            </label>
+                        </div>
+
+                        <!-- Analysis Version Selector -->
+                        <div class="control-group">
+                            <label>Analysis Generator Version</label>
+                            <select id="analysis-version" onchange="appV4.setAnalysisVersion(this.value)">
+                                <option value="V1">V1 - Original (Inline)</option>
+                                <option value="V2">V2 - AnalysisGenerator Class</option>
+                            </select>
+                            <small style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 4px;">
+                                V2 includes RSI, consecutive count, and more fields
+                            </small>
+                        </div>
+
+                        <!-- Refresh Button -->
+                        <div class="control-group">
+                            <button class="btn-primary" onclick="appV4.refreshData()">
+                                <i data-lucide="refresh-cw"></i> Refresh Now
+                            </button>
+                        </div>
+
+                        <!-- Analysis Settings Button -->
+                        <div class="control-group">
+                            <button class="btn-secondary" onclick="appV4.openAnalysisSettingsModal()">
+                                <i data-lucide="settings-2"></i> Analysis Settings
+                            </button>
+                        </div>
+
+                        <!-- Tooltip Fields Button -->
+                        <div class="control-group">
+                            <button class="btn-secondary" onclick="appV4.openTooltipFieldsModal()">
+                                <i data-lucide="list-checks"></i> Tooltip Fields
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EMA Settings Tab -->
+                <div class="tab-content" id="tab-ema">
+                    <h4>Moving Average Settings</h4>
+                    <div class="ema-settings-grid">
+                        <!-- EMA Short -->
+                        <div class="ema-group">
+                            <div class="ema-header">
+                                <span class="ema-label ema-short">EMA Short</span>
+                                <label class="toggle-switch-sm">
+                                    <input type="checkbox" id="ema-short-show" checked>
+                                    <span class="slider-sm"></span>
+                                </label>
+                            </div>
+                            <div class="ema-inputs">
+                                <div class="input-group-sm">
+                                    <label>Type</label>
+                                    <select id="ema-short-type">
+                                        <option value="EMA" selected>EMA</option>
+                                        <option value="SMA">SMA</option>
+                                        <option value="WMA">WMA</option>
+                                        <option value="HMA">HMA</option>
+                                        <option value="EHMA">EHMA</option>
+                                    </select>
+                                </div>
+                                <div class="input-group-sm">
+                                    <label>Period</label>
+                                    <input type="number" id="ema-short-period" value="7" min="1" max="200">
+                                </div>
+                                <div class="input-group-sm">
+                                    <label>Color</label>
+                                    <input type="color" id="ema-short-color" value="#3b82f6" class="color-picker">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EMA Medium -->
+                        <div class="ema-group">
+                            <div class="ema-header">
+                                <span class="ema-label ema-medium">EMA Medium</span>
+                                <label class="toggle-switch-sm">
+                                    <input type="checkbox" id="ema-medium-show" checked>
+                                    <span class="slider-sm"></span>
+                                </label>
+                            </div>
+                            <div class="ema-inputs">
+                                <div class="input-group-sm">
+                                    <label>Type</label>
+                                    <select id="ema-medium-type">
+                                        <option value="EMA" selected>EMA</option>
+                                        <option value="SMA">SMA</option>
+                                        <option value="WMA">WMA</option>
+                                        <option value="HMA">HMA</option>
+                                        <option value="EHMA">EHMA</option>
+                                    </select>
+                                </div>
+                                <div class="input-group-sm">
+                                    <label>Period</label>
+                                    <input type="number" id="ema-medium-period" value="25" min="1" max="200">
+                                </div>
+                                <div class="input-group-sm">
+                                    <label>Color</label>
+                                    <input type="color" id="ema-medium-color" value="#f59e0b" class="color-picker">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EMA Long -->
+                        <div class="ema-group">
+                            <div class="ema-header">
+                                <span class="ema-label ema-long">EMA Long</span>
+                                <label class="toggle-switch-sm">
+                                    <input type="checkbox" id="ema-long-show" checked>
+                                    <span class="slider-sm"></span>
+                                </label>
+                            </div>
+                            <div class="ema-inputs">
+                                <div class="input-group-sm">
+                                    <label>Type</label>
+                                    <select id="ema-long-type">
+                                        <option value="EMA" selected>EMA</option>
+                                        <option value="SMA">SMA</option>
+                                        <option value="WMA">WMA</option>
+                                        <option value="HMA">HMA</option>
+                                        <option value="EHMA">EHMA</option>
+                                    </select>
+                                </div>
+                                <div class="input-group-sm">
+                                    <label>Period</label>
+                                    <input type="number" id="ema-long-period" value="99" min="1" max="200">
+                                </div>
+                                <div class="input-group-sm">
+                                    <label>Color</label>
+                                    <input type="color" id="ema-long-color" value="#8b5cf6" class="color-picker">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ATR Settings -->
+                        <div class="ema-group atr-group">
+                            <div class="ema-header">
+                                <span class="ema-label atr-label">ATR Anomaly</span>
+                                <label class="toggle-switch-sm">
+                                    <input type="checkbox" id="atr-show" checked>
+                                    <span class="slider-sm"></span>
+                                </label>
+                            </div>
+                            <div class="ema-inputs">
+                                <div class="input-group-sm">
+                                    <label>Period</label>
+                                    <input type="number" id="atr-period" value="14" min="1" max="100">
+                                </div>
+                                <div class="input-group-sm">
+                                    <label>Multiplier</label>
+                                    <input type="number" id="atr-multiplier" value="1.5" min="0.5" max="5" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trading Settings Tab -->
+                <div class="tab-content" id="tab-trading">
+                    <h4>Trading Configuration</h4>
+                    <div class="trading-settings-grid">
+                        <div class="trading-input-group">
+                            <label>Duration</label>
+                            <input type="number" id="trade-duration" value="1" min="1" max="60">
+                            <span class="input-hint">Ticks: 1-10 | Min: 1-60</span>
+                        </div>
+                        <div class="trading-input-group">
+                            <label>Duration Unit</label>
+                            <select id="trade-duration-unit">
+                                <option value="ticks">Ticks (5-10 recommended)</option>
+                                <option value="seconds" selected>Seconds</option>
+                                <option value="minutes">Minutes</option>
+                                <option value="hours">Hours</option>
+                            </select>
+                        </div>
+                        <div class="trading-input-group">
+                            <label>Money/Trade ($)</label>
+                            <input type="number" id="trade-money" value="1" min="0.35" max="1000" step="0.01">
+                        </div>
+                        <div class="trading-input-group">
+                            <label>Trade Type</label>
+                            <select id="trade-type">
+                                <option value="1">Fixed Money</option>
+                                <option value="2">Martingale</option>
+                            </select>
+                        </div>
+                        <div class="trading-input-group">
+                            <label>Target Profit ($)</label>
+                            <input type="number" id="target-money" value="10" min="1" max="10000" step="0.01">
+                        </div>
+                        <div class="trading-input-group">
+                            <label>Martingale Sequence</label>
+                            <input type="text" id="martingale-sequence" value="1,2,6,18,54,162,324" disabled
+                                style="font-size: 0.75rem;">
+                        </div>
+                    </div>
+
+                    <h5
+                        style="margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
+                        <i data-lucide="send"></i> Telegram Notifications
+                    </h5>
+                    <div class="trading-settings-grid">
+                        <div class="trading-input-group" style="grid-column: span 2;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="telegram-enable" style="width: 16px; height: 16px;" checked>
+                                <span>Enable Notifications</span>
+                            </label>
+                        </div>
+                        <div class="trading-input-group">
+                            <label>Bot Token</label>
+                            <input type="password" id="telegram-token" placeholder="123456:ABC-DEF..."
+                                onfocus="this.type='text'" onblur="this.type='password'"
+                                value="7309653342:AAEXle0ZAOmPhfobipwBWlkU_CTXlswYs8c">
+                        </div>
+                        <div class="trading-input-group">
+                            <label>Chat ID</label>
+                            <input type="text" id="telegram-chat-id" placeholder="-100xxxxxxx" value='8068993219'>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="appV4.closeSettingsModal()">Cancel</button>
+                <button class="btn-primary" onclick="appV4.saveSettings()">
+                    <i data-lucide="save"></i> Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Background Zones Settings Modal -->
+    <div class="modal-overlay hidden" id="zones-settings-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="icon-palette"></i> 🎨 Background Zones Settings</h3>
+                <button class="modal-close-btn" onclick="appV4.closeZonesSettingsModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="modal-section">
+                    <h4>Zone Types</h4>
+                    <div class="checkbox-group">
+                        <label class="field-checkbox">
+                            <input type="checkbox" id="show-ci-zones" checked>
+                            <span>📊 Choppy Index Zones</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" id="show-rsi-zones" checked>
+                            <span>📈 RSI Buy/Sale Zones</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h4 style="color: #4ade80;">📊 Choppy Index Thresholds</h4>
+                    <div class="threshold-grid">
+                        <div class="threshold-group">
+                            <label><span class="dot green">●</span> Trending (CI <)< /label>
+                                    <input type="number" id="ci-trending-threshold" value="38.2" step="0.1">
+                        </div>
+                        <div class="threshold-group">
+                            <label><span class="dot red">●</span> Choppy (CI >)</label>
+                            <input type="number" id="ci-choppy-threshold" value="61.8" step="0.1">
+                        </div>
+                    </div>
+                    <p class="modal-hint">Fibonacci levels: 38.2 (trending), 61.8 (choppy)</p>
+                </div>
+
+                <div class="modal-section">
+                    <h4 style="color: #60a5fa;">📈 RSI Zone Thresholds</h4>
+                    <div class="threshold-grid">
+                        <div class="threshold-group">
+                            <label><span class="dot green">●</span> Buy Zone (RSI <)< /label>
+                                    <input type="number" id="rsi-oversold-threshold" value="30" step="1">
+                        </div>
+                        <div class="threshold-group">
+                            <label><span class="dot red">●</span> Sale Zone (RSI >)</label>
+                            <input type="number" id="rsi-overbought-threshold" value="70" step="1">
+                        </div>
+                    </div>
+                    <p class="modal-hint">Standard RSI levels: 30 (oversold/buy), 70 (overbought/sale)</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="appV4.closeZonesSettingsModal()">Cancel</button>
+                <button class="btn-primary" onclick="appV4.saveZonesSettings()">
+                    <i data-lucide="save"></i> Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Scripts included at bottom of body usually -->
+    <div class="modal-overlay hidden" id="analysis-settings-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i data-lucide="settings"></i> Analysis Settings</h3>
+                <button class="modal-close-btn" onclick="appV4.closeAnalysisSettingsModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="modal-section">
+                    <h4>Direction Thresholds</h4>
+                    <p class="modal-hint">Set thresholds to determine when EMA/HMA lines are considered "Flat" vs
+                        trending.</p>
+
+                    <div class="threshold-grid">
+                        <div class="threshold-group">
+                            <label>Flat Threshold (pips)</label>
+                            <input type="number" id="flat-threshold" value="0.00001" min="0" step="0.00001">
+                            <span class="threshold-hint">Slope below this = Flat</span>
+                        </div>
+                        <div class="threshold-group">
+                            <label>MACD Threshold</label>
+                            <input type="number" id="macd-threshold" value="0.0001" min="0" step="0.0001">
+                            <span class="threshold-hint">MACD difference for convergence/divergence</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h4>HMA/EHMA Settings</h4>
+                    <div class="threshold-grid">
+                        <div class="threshold-group">
+                            <label>HMA Period</label>
+                            <input type="number" id="hma-period" value="9" min="2" max="100">
+                        </div>
+                        <div class="threshold-group">
+                            <label>EHMA Period</label>
+                            <input type="number" id="ehma-period" value="9" min="2" max="100">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h4>Bollinger Bands</h4>
+                    <div class="threshold-grid">
+                        <div class="threshold-group">
+                            <label>BB Period</label>
+                            <input type="number" id="bb-period" value="20" min="5" max="100">
+                        </div>
+                        <div class="threshold-group">
+                            <label>BB StdDev Multiplier</label>
+                            <input type="number" id="bb-stddev" value="2" min="0.5" max="5" step="0.1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="appV4.closeAnalysisSettingsModal()">Cancel</button>
+                <button class="btn-primary" onclick="appV4.saveAnalysisSettings()">
+                    <i data-lucide="save"></i> Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tooltip Fields Modal -->
+    <div class="modal-overlay hidden" id="tooltip-fields-modal">
+        <div class="modal-box modal-box-lg">
+            <div class="modal-header">
+                <h3><i data-lucide="list"></i> Select Tooltip Fields</h3>
+                <button class="modal-close-btn" onclick="appV4.closeTooltipFieldsModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <p class="modal-hint">Select which fields to display in the candle tooltip:</p>
+
+                <div class="tooltip-fields-grid">
+                    <!-- Basic Info -->
+                    <div class="fields-category">
+                        <h5>Basic Info</h5>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="candletime" checked>
+                            <span>Candle Time</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="color" checked>
+                            <span>Candle Color</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="pipSize" checked>
+                            <span>Pip Size</span>
+                        </label>
+                    </div>
+
+                    <!-- EMA Short -->
+                    <div class="fields-category">
+                        <h5>EMA Short</h5>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="emaShortValue" checked>
+                            <span>Value</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="emaShortDirection" checked>
+                            <span>Direction</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="emaShortTurnType">
+                            <span>Turn Type</span>
+                        </label>
+                    </div>
+
+                    <!-- EMA Medium -->
+                    <div class="fields-category">
+                        <h5>EMA Medium</h5>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="emaMediumValue" checked>
+                            <span>Value</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="emaMediumDirection" checked>
+                            <span>Direction</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="emaMediumTurnType">
+                            <span>Turn Type</span>
+                        </label>
+                    </div>
+
+                    <!-- EMA Long -->
+                    <div class="fields-category">
+                        <h5>EMA Long</h5>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="emaLongValue" checked>
+                            <span>Value</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="emaLongDirection" checked>
+                            <span>Direction</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="emaLongTurnType">
+                            <span>Turn Type</span>
+                        </label>
+                    </div>
+
+                    <!-- Crossover & MACD -->
+                    <div class="fields-category">
+                        <h5>Crossover & MACD</h5>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="emashortMediumAbove">
+                            <span>Short > Medium</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="emaMediumLongAbove">
+                            <span>Medium > Long</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="macdShortMedium">
+                            <span>MACD Short-Medium</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="macdMediumLong">
+                            <span>MACD Medium-Long</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="emaShortMediumConvergenceType">
+                            <span>S-M Convergence Type</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="emaMediumLongConvergenceType">
+                            <span>M-L Convergence Type</span>
+                        </label>
+                    </div>
+
+                    <!-- Indicators -->
+                    <div class="fields-category">
+                        <h5>Indicators</h5>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="choppyIndicator" checked>
+                            <span>Choppy Index</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="adxValue" checked>
+                            <span>ADX</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="atr">
+                            <span>ATR</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="isAbnormalCandle">
+                            <span>Abnormal Candle</span>
+                        </label>
+                    </div>
+
+                    <!-- Bollinger Bands -->
+                    <div class="fields-category">
+                        <h5>Bollinger Bands</h5>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="bbValues">
+                            <span>BB Upper/Middle/Lower</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="bbPosition">
+                            <span>BB Position</span>
+                        </label>
+                    </div>
+
+                    <!-- Candle Structure -->
+                    <div class="fields-category">
+                        <h5>Candle Structure</h5>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="uWick">
+                            <span>Upper Wick</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="body">
+                            <span>Body</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="lWick">
+                            <span>Lower Wick</span>
+                        </label>
+                    </div>
+
+                    <!-- Cut Positions -->
+                    <div class="fields-category">
+                        <h5>Crossover Positions</h5>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="ShortCutMeduimType">
+                            <span>Short Cut Medium Type</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="candlesNoSinceShortCutMeduimCut">
+                            <span>Candles Since S-M Cut</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="LongCutMeduimType">
+                            <span>Long Cut Medium Type</span>
+                        </label>
+                        <label class="field-checkbox">
+                            <input type="checkbox" data-field="candlesNoSinceLongCutMeduimCut">
+                            <span>Candles Since L-M Cut</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="field-actions">
+                    <button class="btn-secondary btn-sm" onclick="appV4.selectAllTooltipFields()">
+                        <i data-lucide="check-square"></i> Select All
+                    </button>
+                    <button class="btn-secondary btn-sm" onclick="appV4.deselectAllTooltipFields()">
+                        <i data-lucide="square"></i> Deselect All
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="appV4.closeTooltipFieldsModal()">Cancel</button>
+                <button class="btn-primary" onclick="appV4.saveTooltipFields()">
+                    <i data-lucide="save"></i> Save Selection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zones Settings Modal -->
+    <div class="modal-overlay" id="zones-settings-modal" style="display: none;">
+        <div class="modal-box" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3><span style="margin-right: 8px;">🎨</span>Background Zones Settings</h3>
+                <button class="modal-close-btn" onclick="appV4.closeZonesSettingsModal()">×</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <!-- Zone Type Toggles -->
+                <div class="settings-section" style="margin-bottom: 20px;">
+                    <h4
+                        style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                        Zone Types
+                    </h4>
+                    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                        <label class="toggle-label"
+                            style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="zones-show-ci" checked
+                                style="width: 18px; height: 18px; accent-color: #8b5cf6;">
+                            <span style="color: var(--text-primary);">📊 Choppy Index Zones</span>
+                        </label>
+                        <label class="toggle-label"
+                            style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="zones-show-rsi" checked
+                                style="width: 18px; height: 18px; accent-color: #8b5cf6;">
+                            <span style="color: var(--text-primary);">📈 RSI Buy/Sale Zones</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- CI Thresholds -->
+                <div class="settings-section"
+                    style="margin-bottom: 20px; padding: 15px; background: rgba(34, 197, 94, 0.1); border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.2);">
+                    <h4
+                        style="font-size: 13px; color: #22c55e; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                        📊 Choppy Index Thresholds
+                    </h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="input-group">
+                            <label
+                                style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">
+                                🟢 Trending (CI &lt;)
+                            </label>
+                            <input type="number" id="zones-ci-trending" value="38.2" step="0.1" min="0" max="100"
+                                style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 6px; color: #22c55e; font-size: 13px;">
+                        </div>
+                        <div class="input-group">
+                            <label
+                                style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">
+                                🔴 Choppy (CI &gt;)
+                            </label>
+                            <input type="number" id="zones-ci-choppy" value="61.8" step="0.1" min="0" max="100"
+                                style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; color: #ef4444; font-size: 13px;">
+                        </div>
+                    </div>
+                    <p style="font-size: 10px; color: var(--text-muted); margin-top: 8px;">
+                        💡 Fibonacci levels: 38.2 (trending), 61.8 (choppy)
+                    </p>
+                </div>
+
+                <!-- RSI Thresholds -->
+                <div class="settings-section"
+                    style="margin-bottom: 20px; padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                    <h4
+                        style="font-size: 13px; color: #10b981; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                        📈 RSI Zone Thresholds
+                    </h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="input-group">
+                            <label
+                                style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">
+                                🟢 Buy Zone (RSI &lt;)
+                            </label>
+                            <input type="number" id="zones-rsi-oversold" value="30" step="1" min="0" max="100"
+                                style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; color: #10b981; font-size: 13px;">
+                        </div>
+                        <div class="input-group">
+                            <label
+                                style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">
+                                🔴 Sale Zone (RSI &gt;)
+                            </label>
+                            <input type="number" id="zones-rsi-overbought" value="70" step="1" min="0" max="100"
+                                style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 6px; color: #f97316; font-size: 13px;">
+                        </div>
+                    </div>
+                    <p style="font-size: 10px; color: var(--text-muted); margin-top: 8px;">
+                        💡 Standard RSI levels: 30 (oversold/buy), 70 (overbought/sale)
+                    </p>
+                </div>
+
+                <!-- RSI Period -->
+                <div class="settings-section"
+                    style="margin-bottom: 20px; padding: 15px; background: rgba(139, 92, 246, 0.1); border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.2);">
+                    <h4
+                        style="font-size: 13px; color: #a78bfa; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                        ⚙️ RSI Period
+                    </h4>
+                    <div class="input-group">
+                        <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">
+                            Period
+                        </label>
+                        <input type="number" id="zones-rsi-period" value="14" step="1" min="2" max="50"
+                            style="width: 100px; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 6px; color: #a78bfa; font-size: 13px;">
+                    </div>
+                    <p style="font-size: 10px; color: var(--text-muted); margin-top: 8px;">
+                        💡 Standard period: 14
+                    </p>
+                </div>
+
+                <!-- Show Labels Toggle -->
+                <div class="settings-section"
+                    style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <label class="toggle-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="zones-show-labels"
+                            style="width: 18px; height: 18px; accent-color: #8b5cf6;">
+                        <span style="color: var(--text-primary);">🏷️ Show Zone Labels on Chart</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer"
+                style="display: flex; justify-content: flex-end; gap: 10px; padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <button class="btn-secondary" onclick="appV4.closeZonesSettingsModal()"
+                    style="padding: 8px 16px;">Cancel</button>
+                <button class="btn-primary" onclick="appV4.saveZonesSettings()"
+                    style="padding: 8px 16px; background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                    💾 Save & Apply
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fixed Bottom Menu -->
+    <div class="fixed-bottom-menu glass-panel"
+        style="position: fixed; bottom: 0; left: 0; width: 100%; padding: 10px 20px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: space-between; z-index: 1000; box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);">
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-weight: 600; color: #fff; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="shield"></i> Authentication
+            </span>
+            <!-- Authorization Inputs -->
+            <input type="password" id="deriv-token" placeholder="API Token"
+                style="padding: 8px 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; background: rgba(0,0,0,0.3); color: white; font-size: 13px; width: 220px; transition: all 0.2s;"
+                title="Enter your Deriv API Token" value='lt5UMO6bNvmZQaR'>
+
+            <button id="btn-authorize" onclick="DerivTrader.authorize()"
+                style="padding: 8px 16px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 600; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.3); transition: transform 0.1s;">
+                🔑 Authorize
+            </button>
+
+            <span id="auth-status" class="auth-status"
+                style="font-size: 12px; padding: 6px 10px; border-radius: 4px; background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.2);">
+                Not Authorized
+            </span>
+        </div>
+
+        <!-- Trade Term Controls -->
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div id="term-status"
+                style="font-size: 12px; color: #fbbf24; font-weight: 600; padding: 4px 8px; background: rgba(251, 191, 36, 0.1); border-radius: 4px; border: 1px solid rgba(251, 191, 36, 0.2); display: none;">
+                Current: <span id="term-status-text">-</span>
+            </div>
+
+            <button onclick="setTradeTerm('long')"
+                style="padding: 8px 12px; background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s;"
+                title="Set duration to 30 minutes">
+                📈 Long Term
+            </button>
+
+            <button onclick="setTradeTerm('short')"
+                style="padding: 8px 12px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s;"
+                title="Set duration to 55 seconds">
+                📉 Short Term
+            </button>
+
+            <button onclick="appV4.clearAllEntrySpotLines()"
+                style="padding: 8px 12px; background: rgba(148, 163, 184, 0.2); color: #e2e8f0; border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;"
+                title="Clear all price lines">
+                <i data-lucide="eraser" style="width: 14px; height: 14px;"></i> Clear Lines
+            </button>
+        </div>
+
+        <div style="color: rgba(255,255,255,0.5); font-size: 11px;">
+            Choppy Meter V5 &bull; Secure Connection
+        </div>
+    </div>
+
+    <!-- Hidden CodeCandle Data Storage -->
+    <div style="display: none;">
+        <textarea id="CodeCandle" style="display: none;"></textarea>
+        <span id="CodeCandleInfo"></span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="js/jsB.js"></script>
+    <script src="js/indicators.js"></script>
+    <script src="js/SMCIndicator.js"></script>
+    <script src="js/meter.js"></script>
+    <script src="js/deriv.js"></script>
+    <script src="js/clsAnalysisGenerator.js"></script>
+    <script src="microIndy/clsMicroTickIndy.js"></script>
+    <script src="js/CodeColorMaster.js"></script>
+    <script src="js/backgroundColorZonesPlugin.js"></script>
+
+    <script src="js/SMCChartRenderer.js"></script>
+    <script src="js/mainV4.js"></script>
+    <script src="js/trader.js"></script>
+    <script>
+        // Term Setting Function
+        // Term Setting Function
+        // Term Setting Function
+        function setTradeTerm(type) {
+            console.log("setTradeTerm called:", type);
+
+            // Auto-authorize if not connected
+            if (typeof DerivTrader !== 'undefined') {
+                console.log("DerivTrader found. Authorized:", DerivTrader.state.isAuthorized);
+                if (!DerivTrader.state.isAuthorized) {
+                    console.log("Triggering Auto-Auth...");
+                    DerivTrader.authorize();
+                }
+            } else {
+                console.error("DerivTrader is undefined!");
+            }
+
+            const durationInput = document.getElementById('trade-duration');
+            const unitSelect = document.getElementById('trade-duration-unit');
+            const statusEl = document.getElementById('term-status');
+            const statusText = document.getElementById('term-status-text');
+
+            if (!durationInput || !unitSelect) return;
+
+            if (type === 'long') {
+                durationInput.value = 30;
+                unitSelect.value = 'minutes';
+                if (statusText) statusText.textContent = 'Long Term (30m)';
+            } else if (type === 'short') {
+                durationInput.value = 55;
+                unitSelect.value = 'seconds';
+                if (statusText) statusText.textContent = 'Short Term (55s)';
+            }
+
+            // Trigger change events to update DerivTrader state
+            durationInput.dispatchEvent(new Event('change'));
+            unitSelect.dispatchEvent(new Event('change'));
+
+            // Show status
+            if (statusEl) {
+                statusEl.style.display = 'block';
+                // Add highlight animation
+                statusEl.style.animation = 'none';
+                statusEl.offsetHeight; /* trigger reflow */
+                statusEl.style.animation = 'pulse 1s';
+            }
+        }
+
+        lucide.createIcons();
+
+        // Check authentication and display user info
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load CodeCandle Master Data on page load
+            try {
+                console.log('🎨 Loading CodeCandle Master Data...');
+                await doAjaxRetrieveCodeCandle();
+                console.log('✅ CodeCandle Master Data loaded successfully');
+            } catch (error) {
+                console.error('❌ Failed to load CodeCandle Master Data:', error);
+            }
+
+            // Display user info if authenticated
+            const username = sessionStorage.getItem('username');
+            const loginId = sessionStorage.getItem('deriv_loginid');
+
+            if (username) {
+                const userInfoEl = document.getElementById('user-info');
+                const logoutBtn = document.getElementById('btn-logout');
+
+                if (loginId) {
+                    userInfoEl.textContent = `👤 ${username} (${loginId})`;
+                } else {
+                    userInfoEl.textContent = `👤 ${username}`;
+                }
+
+                logoutBtn.style.display = 'block';
+            }
+
+            // Listen for authorization events
+            window.addEventListener('derivAuthorized', (e) => {
+                const userInfoEl = document.getElementById('user-info');
+                const logoutBtn = document.getElementById('btn-logout');
+                const username = sessionStorage.getItem('username');
+
+                if (e.detail && e.detail.loginid) {
+                    userInfoEl.textContent = `👤 ${username} (${e.detail.loginid})`;
+                    logoutBtn.style.display = 'block';
+                }
+            });
+
+            // Initialize trader when DOM is ready
+            DerivTrader.init();
+        });
+    </script>
+</body>
+
+</html>
