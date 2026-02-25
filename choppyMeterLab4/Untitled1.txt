@@ -1,0 +1,28 @@
+1.สร้าง  martingaleMoney = [1,2,6,18,54,162,324]
+2.สร้าง Input ดังนี้  เพื่อเตรียมไว้เข้า trade deriv.com
+ numduration : numberbox- เก็บจำนวน 
+ durationUnit : listbox->seconds,minute,hour 
+ MoneyTrade : numberbox
+ TradeType : 1.Fixed Money 2.MartinGale 
+ ถ้า MartinGale ให้เดินเงิน จากตัวแปร martingaleMoney 
+ TargetMoney  : numberbox
+ 
+
+3.สร้าง classGetAction โดยให้รับ analysisData ทุก ๆ วินาที ที่ 0 ของ timeframe ที่เลือกไว้
+เมื่อได้ค่า analysisData มาแล้ว ให้ ดูว่า  emaMeduim กับ emaLong อะไรอยู่เหนือกว่ากัน
+ก็ให้ เลือก action 
+  - ถ้า  emaMeduim >  emaLong ก็ให้ action = call 
+  - ถ้า  emaMeduim <  emaLong ก็ให้ action = put
+
+เมื่อได้ action มาก็ทำการเข้าเทรดกับ deriv.com ในแบบ rise/fall 
+ตามค่า action,numduration,durationUnit
+พร้อมทั้ง track order ออกมาแสดงผลทุกๆ 2 วินาที 
+วนลูป Trade จากว่าจะถึง TargetMoney 
+4.ให้มี การแสดง ตารางการ TrackOrder พร้อมทั้งปุ่ม Sale ด้วย 
+ ตาราง TrackOrder -> ลำดับ	Contract ID	Symbol	ประเภท	ราคาซื้อ	Payout	กำไร/ขาดทุน	เวลาซื้อ	เวลาหมดอายุ	เวลาที่เหลือ	Min Profit	Max Profit	การจัดการ
+5.ให้มี การแสดงผล การเทรด WinStatus,Balance, NumWin,NumLoss,WinCon,LossCon
+
+
+
+
+
