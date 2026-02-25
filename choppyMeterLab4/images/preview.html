@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Icon Preview</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #ddd;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .icon {
+            width: 64px;
+            height: 64px;
+        }
+
+        .emoji {
+            width: 32px;
+            height: 32px;
+        }
+
+        h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Generated Icons</h1>
+    <div class="container">
+        <div class="card">
+            <h3>Green Up</h3>
+            <img src="green_arrow_up.svg" class="icon">
+            <br>
+            <small>64px</small>
+            <br><br>
+            <img src="green_arrow_up.svg" class="emoji">
+            <br>
+            <small>32px (Emoji)</small>
+        </div>
+        <div class="card">
+            <h3>Red Down</h3>
+            <img src="red_arrow_down.svg" class="icon">
+            <br>
+            <small>64px</small>
+            <br><br>
+            <img src="red_arrow_down.svg" class="emoji">
+            <br>
+            <small>32px (Emoji)</small>
+        </div>
+    </div>
+</body>
+
+</html>
