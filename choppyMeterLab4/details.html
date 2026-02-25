@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detailed Analysis - Choppy Meter Pro</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-panel">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html"
+                        style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 12px;">
+                        <i data-lucide="arrow-left"></i>
+                        <h1>Analysis <span class="highlight">Charts</span></h1>
+                    </a>
+                </div>
+                <div class="status-bar">
+                    <span id="connection-status" class="status-pill disconnected">
+                        <span class="dot"></span> Disconnected
+                    </span>
+                    <span id="server-time" class="time-display">--:--:--</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Charts Grid -->
+        <!-- Main Layout -->
+        <main class="details-layout">
+            <!-- Left Column: Charts -->
+            <div id="charts-list" class="dashboard-grid" style="grid-template-columns: 1fr; min-height: unset;">
+                <!-- Charts Injected Here -->
+            </div>
+
+            <!-- Right Column: Trade Input -->
+            <!-- Right Column: Trade Input List -->
+            <div id="trade-panel-list" style="display: flex; flex-direction: column; gap: 24px;">
+                <!-- Trade Panels Will Be Injected Here -->
+            </div>
+        </main>
+    </div>
+
+    <script src="js/indicators.js"></script>
+    <script src="js/deriv.js"></script>
+    <script src="js/details.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
