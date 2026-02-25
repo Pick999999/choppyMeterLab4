@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choppy Indicator Meter</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-panel">
+            <div class="header-content">
+                <div class="logo">
+                    <i data-lucide="gauge"></i>
+                    <h1>Choppy Meter <span class="highlight">Pro</span></h1>
+                </div>
+                <div class="status-bar">
+                    <span id="connection-status" class="status-pill disconnected">
+                        <span class="dot"></span> Disconnected
+                    </span>
+                    <button class="btn-toggle-connect" id="btn-connect-toggle" onclick="app.toggleConnection()">
+                        <i data-lucide="power"></i> Stop
+                    </button>
+                    <div class="clock-wrapper">
+                        <div class="analog-clock">
+                            <div class="hand hour" id="clock-hour"></div>
+                            <div class="hand minute" id="clock-minute"></div>
+                            <div class="hand second" id="clock-second"></div>
+                            <div class="center-dot"></div>
+                        </div>
+                        <span id="server-time" class="time-display digital-clock">--:--:--</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Controls -->
+        <section class="controls-section glass-panel">
+            <div class="controls-grid">
+                <!-- Group Selection -->
+                <div class="control-group">
+                    <label>Asset Group</label>
+                    <div class="toggle-group">
+                        <button class="btn-toggle active" data-group="A" onclick="app.setAssetGroup('A')">Group A
+                            (Standard)</button>
+                        <button class="btn-toggle" data-group="B" onclick="app.setAssetGroup('B')">Group B
+                            (1Hz)</button>
+                    </div>
+                </div>
+
+                <!-- Timeframe -->
+                <div class="control-group">
+                    <label>Timeframe & Refresh</label>
+                    <div class="select-wrapper">
+                        <select id="timeframe-select" onchange="app.handleTimeframeChange()">
+                            <option value="60">1 Minute</option>
+                            <option value="180">3 Minutes</option>
+                            <option value="300">5 Minutes</option>
+                            <option value="900">15 Minutes</option>
+                            <option value="1800">30 Minutes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Data Source -->
+                <div class="control-group">
+                    <label>Data Source</label>
+                    <div class="toggle-group">
+                        <button class="btn-toggle active" id="btn-latest"
+                            onclick="app.setDataSource('latest')">Latest</button>
+                        <button class="btn-toggle" id="btn-history"
+                            onclick="app.setDataSource('history')">History</button>
+                    </div>
+                </div>
+
+                <!-- Params -->
+                <div class="control-group params-trigger">
+                    <button class="btn-secondary" onclick="app.toggleSettings()">
+                        <i data-lucide="settings"></i> Parameters
+                    </button>
+                </div>
+
+                <!-- Detail Page Link -->
+                <div class="control-group">
+                    <a href="#" class="btn-primary" onclick="app.goToDetails(event)">
+                        Details <i data-lucide="arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Settings Panel (Hidden by default) -->
+            <div id="settings-panel" class="settings-panel hidden">
+                <div class="input-group">
+                    <label>Choppiness Period</label>
+                    <input type="number" id="param-ci-period" value="14" min="1">
+                </div>
+                <div class="input-group">
+                    <label>ADX Period</label>
+                    <input type="number" id="param-adx-period" value="14" min="1">
+                </div>
+                <div class="input-group">
+                    <label>ADX Smoothing</label>
+                    <input type="number" id="param-adx-smoothing" value="14" min="1">
+                </div>
+                <div class="action-row">
+                    <button class="btn-primary" onclick="app.applySettings()">Apply changes</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Grid -->
+        <main class="dashboard-grid" id="asset-grid">
+            <!-- Cards will be injected here via JS -->
+            <!-- Loading State -->
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Initializing Market Data...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/indicators.js"></script>
+    <script src="js/meter.js"></script>
+    <script src="js/deriv.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
