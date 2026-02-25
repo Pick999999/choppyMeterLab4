@@ -1,0 +1,325 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Files Analysis Summary</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; color: #333; margin: 0; padding: 20px; }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; box-shadow: 0 0 15px rgba(0,0,0,0.1); border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #ddd; vertical-align: top; }
+        th { background-color: #34495e; color: white; text-align: left; font-weight: 600; }
+        tr:hover { background-color: #f1f1f1; }
+        .file-name { font-weight: bold; color: #e67e22; font-size: 1.1em; }
+        .file-loc { font-size: 0.85em; color: #7f8c8d; display: block; margin-top: 4px; }
+        .func-list { max-height: 200px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 5px; }
+        .func-tag { background: #e0f2f1; color: #00695c; padding: 2px 8px; border-radius: 4px; font-size: 0.9em; border: 1px solid #b2dfdb; }
+        .desc-text { line-height: 1.5; color: #444; }
+        .meta-info { font-size: 0.95em; }
+        .label { font-weight: bold; color: #555; display: block; margin-bottom: 3px; }
+        
+        /* Specific column widths */
+        th.col-file { width: 15%; }
+        th.col-desc { width: 30%; }
+        th.col-func { width: 30%; }
+        th.col-rels { width: 25%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JavaScript Files Analysis Summary</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-file">File Name (Location)</th>
+                    <th class="col-desc">Purpose (หน้าที่)</th>
+                    <th class="col-func">Functions List</th>
+                    <th class="col-rels">Relationships</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>
+                        <div class="file-name">jsB.js</div>
+                        <span class="file-loc">js/jsB.js</span>
+                    </td>
+                    <td class="desc-text">จัดการระบบความปลอดภัย, การยืนยันตัวตน และการเชื่อมต่อ WebSocket สำหรับแอปพลิเคชัน ทำหน้าที่เป็นศูนย์กลางเชื่อมต่อสื่อสารที่ปลอดภัยกับ Backend API</td>
+                    <td>
+                        <div class="func-list">
+                            <span class="func-tag">initializeSecureConnection</span><span class="func-tag">decodeApiToken</span><span class="func-tag">authorizeSocket</span><span class="func-tag">isAuthenticated</span><span class="func-tag">getApiToken</span><span class="func-tag">getLoginId</span><span class="func-tag">logout</span><span class="func-tag">requireAuth</span><span class="func-tag">cleanup</span><span class="func-tag">getSecureConnection</span>
+                        </div>
+                    </td>
+                    <td class="meta-info">
+                        <div style="margin-bottom: 12px;">
+                            <span class="label">Called By (Parent):</span>
+                            mainV4.js (via global window.jsB object), trader.js
+                        </div>
+                        <div>
+                            <span class="label">Calls External:</span>
+                            window.WebSocket, encodeURIComponent, decodeURIComponent, localStorage.getItem, localStorage.setItem, localStorage.removeItem
+                        </div>
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <div class="file-name">indicators.js</div>
+                        <span class="file-loc">js/indicators.js</span>
+                    </td>
+                    <td class="desc-text">รวบรวมไลบรารีฟังก์ชันสำหรับคำนวณอินดิเคเตอร์ทางเทคนิคต่างๆ (เช่น SMA, EMA, RSI) เพื่อใช้ในการวิเคราะห์ตลาด</td>
+                    <td>
+                        <div class="func-list">
+                            <span class="func-tag">sma</span><span class="func-tag">rma</span><span class="func-tag">ema</span><span class="func-tag">wma</span><span class="func-tag">hma</span><span class="func-tag">ehma</span><span class="func-tag">tr</span><span class="func-tag">adx</span><span class="func-tag">ci</span><span class="func-tag">atr</span><span class="func-tag">bollingerBands</span><span class="func-tag">rsi</span><span class="func-tag">stdDev</span>
+                        </div>
+                    </td>
+                    <td class="meta-info">
+                        <div style="margin-bottom: 12px;">
+                            <span class="label">Called By (Parent):</span>
+                            mainV4.js, clsAnalysisGenerator.js (conceptually similar calculations, though clsAnalysisGenerator often implements its own for class structure)
+                        </div>
+                        <div>
+                            <span class="label">Calls External:</span>
+                            Math.abs, Math.max, Math.min, Math.sqrt, Math.pow, Math.log10, Array.prototype.reduce, Array.prototype.map, Array.prototype.slice
+                        </div>
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <div class="file-name">meter.js</div>
+                        <span class="file-loc">js/meter.js</span>
+                    </td>
+                    <td class="desc-text">กำหนดคลาส ChoppyMeter สำหรับแสดงผลกราฟิกมาตรวัด Choppiness Index บน HTML Canvas</td>
+                    <td>
+                        <div class="func-list">
+                            <span class="func-tag">ChoppyMeter.constructor</span><span class="func-tag">ChoppyMeter.setValue</span><span class="func-tag">ChoppyMeter.animate</span><span class="func-tag">ChoppyMeter.render</span><span class="func-tag">ChoppyMeter.drawNeedle</span><span class="func-tag">ChoppyMeter.drawScale</span>
+                        </div>
+                    </td>
+                    <td class="meta-info">
+                        <div style="margin-bottom: 12px;">
+                            <span class="label">Called By (Parent):</span>
+                            mainV4.js (when rendering the asset grid cards)
+                        </div>
+                        <div>
+                            <span class="label">Calls External:</span>
+                            requestAnimationFrame, CanvasRenderingContext2D methods (clearRect, beginPath, arc, stroke, fillText, save, restore, rotate)
+                        </div>
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <div class="file-name">deriv.js</div>
+                        <span class="file-loc">js/deriv.js</span>
+                    </td>
+                    <td class="desc-text">ตัวหุ้ม (Wrapper) สำหรับ Deriv API ทำหน้าที่จัดการการเชื่อมต่อ WebSocket และเตรียมเมธอดสำหรับดึงข้อมูลย้อนหลัง หรือสมัครรับข้อมูล Tick แบบเรียลไทม์</td>
+                    <td>
+                        <div class="func-list">
+                            <span class="func-tag">getWebSocket</span><span class="func-tag">DerivAPI.connect</span><span class="func-tag">DerivAPI.disconnect</span><span class="func-tag">DerivAPI.getHistory</span><span class="func-tag">DerivAPI.subscribeMicroTicks</span><span class="func-tag">DerivAPI.unsubscribeMicroTicks</span>
+                        </div>
+                    </td>
+                    <td class="meta-info">
+                        <div style="margin-bottom: 12px;">
+                            <span class="label">Called By (Parent):</span>
+                            mainV4.js, trader.js
+                        </div>
+                        <div>
+                            <span class="label">Calls External:</span>
+                            WebSocket, JSON.stringify, JSON.parse, console.log
+                        </div>
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <div class="file-name">clsAnalysisGenerator.js</div>
+                        <span class="file-loc">js/clsAnalysisGenerator.js</span>
+                    </td>
+                    <td class="desc-text">คลาสสำหรับประมวลผลข้อมูลแท่งเทียนย้อนหลัง สร้างผลวิเคราะห์ทางเทคนิคต่างๆ (EMA, RSI, ADX, CI ฯลฯ) และระบุแนวโน้ม เช่น จุดตุด Golden/Death Cross หรือ Divergence</td>
+                    <td>
+                        <div class="func-list">
+                            <span class="func-tag">AnalysisGenerator.constructor</span><span class="func-tag">AnalysisGenerator.calculateEMA</span><span class="func-tag">AnalysisGenerator.calculateWMA</span><span class="func-tag">AnalysisGenerator.calculateHMA</span><span class="func-tag">AnalysisGenerator.calculateEHMA</span><span class="func-tag">AnalysisGenerator.calculateRSI</span><span class="func-tag">AnalysisGenerator.calculateMA</span><span class="func-tag">AnalysisGenerator.calculateATR</span><span class="func-tag">AnalysisGenerator.calculateATRWithTime</span><span class="func-tag">AnalysisGenerator.calculateBB</span><span class="func-tag">AnalysisGenerator.calculateCI</span><span class="func-tag">AnalysisGenerator.calculateADX</span><span class="func-tag">AnalysisGenerator.getEMADirection</span><span class="func-tag">AnalysisGenerator.getMACDConver</span><span class="func-tag">AnalysisGenerator.generate</span><span class="func-tag">AnalysisGenerator.getSummary</span>
+                        </div>
+                    </td>
+                    <td class="meta-info">
+                        <div style="margin-bottom: 12px;">
+                            <span class="label">Called By (Parent):</span>
+                            mainV4.js (appV4.generateAnalysisData)
+                        </div>
+                        <div>
+                            <span class="label">Calls External:</span>
+                            Internal methods (e.g., calculateMA calls calculateEMA/HMA), Math functions
+                        </div>
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <div class="file-name">clsMicroTickIndy.js</div>
+                        <span class="file-loc">microIndy/clsMicroTickIndy.js</span>
+                    </td>
+                    <td class="desc-text">วิเคราะห์การเคลื่อนไหวของราคาในระดับ Micro-tick เพื่อตรวจจับรูปแบบละเอียด, ดูแรงส่ง (Momentum), และระบุ Divergence หรือ Breakout ที่อาจเกิดขึ้นแบบเรียลไทม์</td>
+                    <td>
+                        <div class="func-list">
+                            <span class="func-tag">clsMicroTickIndy.constructor</span><span class="func-tag">clsMicroTickIndy.on</span><span class="func-tag">clsMicroTickIndy.addCandle</span><span class="func-tag">clsMicroTickIndy.updateCandle</span><span class="func-tag">clsMicroTickIndy.setCandles</span><span class="func-tag">clsMicroTickIndy.processCandles</span><span class="func-tag">clsMicroTickIndy.calculateArrowData</span><span class="func-tag">clsMicroTickIndy.processMinuteSummaries</span><span class="func-tag">clsMicroTickIndy.runAnalysis</span><span class="func-tag">clsMicroTickIndy.isDuplicateAlert</span><span class="func-tag">clsMicroTickIndy.detectDivergence</span><span class="func-tag">clsMicroTickIndy.calculateDivergenceStrength</span><span class="func-tag">clsMicroTickIndy.checkStrengthThreshold</span><span class="func-tag">clsMicroTickIndy.recognizePattern</span><span class="func-tag">clsMicroTickIndy.getData</span><span class="func-tag">clsMicroTickIndy.getArrows</span><span class="func-tag">clsMicroTickIndy.getMinuteSummaries</span><span class="func-tag">clsMicroTickIndy.getAlerts</span><span class="func-tag">clsMicroTickIndy.getStats</span><span class="func-tag">clsMicroTickIndy.clear</span><span class="func-tag">clsMicroTickIndy.updateConfig</span><span class="func-tag">clsMicroTickIndy.getConfig</span><span class="func-tag">clsMicroTickIndy.formatTime</span><span class="func-tag">clsMicroTickIndy.formatDate</span><span class="func-tag">clsMicroTickIndy.getVersion</span>
+                        </div>
+                    </td>
+                    <td class="meta-info">
+                        <div style="margin-bottom: 12px;">
+                            <span class="label">Called By (Parent):</span>
+                            mainV4.js (appV4 state initialization and chart data processing)
+                        </div>
+                        <div>
+                            <span class="label">Calls External:</span>
+                            Internal analysis methods, callback functions (onAlert, onArrowUpdate, onStatsUpdate)
+                        </div>
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <div class="file-name">SMCIndicator.js</div>
+                        <span class="file-loc">js/SMCIndicator.js</span>
+                    </td>
+                    <td class="desc-text">ใช้หลักการ Smart Money Concepts (SMC) ในการระบุ Swing Points, โครงสร้างตลาด (BOS/CHoCH), Order Blocks, Fair Value Gaps (FVG), และโซน Premium/Discount</td>
+                    <td>
+                        <div class="func-list">
+                            <span class="func-tag">SMCIndicator.constructor</span><span class="func-tag">SMCIndicator._reset</span><span class="func-tag">SMCIndicator._calculateATR</span><span class="func-tag">SMCIndicator._highest</span><span class="func-tag">SMCIndicator._lowest</span><span class="func-tag">SMCIndicator._indexOfMax</span><span class="func-tag">SMCIndicator._indexOfMin</span><span class="func-tag">SMCIndicator._getLeg</span><span class="func-tag">SMCIndicator._processStructure</span><span class="func-tag">SMCIndicator._processSwingPoints</span><span class="func-tag">SMCIndicator._storeOrderBlock</span><span class="func-tag">SMCIndicator._checkOrderBlockMitigation</span><span class="func-tag">SMCIndicator._detectFVG</span><span class="func-tag">SMCIndicator._checkFVGFill</span><span class="func-tag">SMCIndicator._updateTrailingExtremes</span><span class="func-tag">SMCIndicator._calculatePremiumDiscountZone</span><span class="func-tag">SMCIndicator._calculateStrongWeakLevels</span><span class="func-tag">SMCIndicator.calculate</span><span class="func-tag">SMCIndicator.getStructures</span><span class="func-tag">SMCIndicator.getSwingPoints</span>
+                        </div>
+                    </td>
+                    <td class="meta-info">
+                        <div style="margin-bottom: 12px;">
+                            <span class="label">Called By (Parent):</span>
+                            mainV4.js (appV4.processCandles)
+                        </div>
+                        <div>
+                            <span class="label">Calls External:</span>
+                            Internal helper methods for array manipulation and calculations
+                        </div>
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <div class="file-name">SMCChartRenderer.js</div>
+                        <span class="file-loc">js/SMCChartRenderer.js</span>
+                    </td>
+                    <td class="desc-text">แสดงผลลัพธ์การวิเคราะห์ SMC (เช่น Swing Points, Order Blocks) บนกราฟ Lightweight Charts โดยใช้ Primitives และ Markers</td>
+                    <td>
+                        <div class="func-list">
+                            <span class="func-tag">SMCChartRenderer.constructor</span><span class="func-tag">SMCChartRenderer.clear</span><span class="func-tag">SMCChartRenderer.renderSwingPoints</span><span class="func-tag">SMCChartRenderer.renderStructures</span><span class="func-tag">SMCChartRenderer.createBoxPrimitive</span><span class="func-tag">SMCChartRenderer.renderOrderBlocks</span><span class="func-tag">SMCChartRenderer.renderFairValueGaps</span><span class="func-tag">SMCChartRenderer.renderEqualHighsLows</span><span class="func-tag">SMCChartRenderer.renderPremiumDiscountZone</span><span class="func-tag">SMCChartRenderer.renderStrongWeakLevels</span><span class="func-tag">SMCChartRenderer.renderAll</span>
+                        </div>
+                    </td>
+                    <td class="meta-info">
+                        <div style="margin-bottom: 12px;">
+                            <span class="label">Called By (Parent):</span>
+                            mainV4.js (appV4.updateSelectedChart)
+                        </div>
+                        <div>
+                            <span class="label">Calls External:</span>
+                            LightweightCharts methods (series.setMarkers, series.attachPrimitive, chart.addLineSeries), BackgroundColorZonesPlugin (via helper logic)
+                        </div>
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <div class="file-name">CodeColorMaster.js</div>
+                        <span class="file-loc">js/CodeColorMaster.js</span>
+                    </td>
+                    <td class="desc-text">ดึงข้อมูล 'Code Candle Master' (นิยามสีหรือโค้ดสินทรัพย์) จากสคริปต์ PHP ภายนอกผ่าน AJAX</td>
+                    <td>
+                        <div class="func-list">
+                            <span class="func-tag">doAjaxRetrieveCodeCandle</span>
+                        </div>
+                    </td>
+                    <td class="meta-info">
+                        <div style="margin-bottom: 12px;">
+                            <span class="label">Called By (Parent):</span>
+                            UI Event Handlers (Buttons in HTML), possibly console usage
+                        </div>
+                        <div>
+                            <span class="label">Calls External:</span>
+                            $.ajax (jQuery), JSON.stringify
+                        </div>
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <div class="file-name">backgroundColorZonesPlugin.js</div>
+                        <span class="file-loc">js/backgroundColorZonesPlugin.js</span>
+                    </td>
+                    <td class="desc-text">ปลั๊กอินสำหรับ Lightweight Charts เพื่อแสดงพื้นที่สีพื้นหลังตามช่วงเวลาและระดับราคา (เช่น โซน Choppy, โซน RSI หรือ Order Blocks)</td>
+                    <td>
+                        <div class="func-list">
+                            <span class="func-tag">BackgroundColorZonesPlugin.constructor</span><span class="func-tag">BackgroundColorZonesPlugin.attached</span><span class="func-tag">BackgroundColorZonesPlugin.detached</span><span class="func-tag">BackgroundColorZonesPlugin.updateAllViews</span><span class="func-tag">BackgroundColorZonesPlugin.paneViews</span><span class="func-tag">BackgroundColorZonesPlugin.chart</span><span class="func-tag">BackgroundColorZonesPlugin.series</span><span class="func-tag">BackgroundColorZonesPlugin.zones</span><span class="func-tag">BackgroundColorZonesPlugin.options</span><span class="func-tag">BackgroundColorZonesPlugin.setZones</span><span class="func-tag">BackgroundColorZonesPlugin.addZone</span><span class="func-tag">BackgroundColorZonesPlugin.removeZone</span><span class="func-tag">BackgroundColorZonesPlugin.clearZones</span><span class="func-tag">BackgroundColorZonesPlugin.getZones</span><span class="func-tag">BackgroundColorZonesPlugin.getOptions</span><span class="func-tag">BackgroundColorZonesPlugin.setOptions</span><span class="func-tag">BackgroundZonesPaneView.constructor</span><span class="func-tag">BackgroundZonesPaneView.update</span><span class="func-tag">BackgroundZonesPaneView.renderer</span><span class="func-tag">BackgroundZonesPaneView.zOrder</span><span class="func-tag">BackgroundZonesRenderer.constructor</span><span class="func-tag">BackgroundZonesRenderer.draw</span><span class="func-tag">createCiRsiZones</span><span class="func-tag">createZonesFromAnalysis</span><span class="func-tag">createCrossoverZones</span><span class="func-tag">createChoppyZones</span><span class="func-tag">ZoneConfigManager.constructor</span><span class="func-tag">ZoneConfigManager.save</span><span class="func-tag">ZoneConfigManager.get</span><span class="func-tag">ZoneConfigManager.set</span><span class="func-tag">ZoneConfigManager.getAll</span><span class="func-tag">ZoneConfigManager.setAll</span><span class="func-tag">ZoneConfigManager.isEnabled</span><span class="func-tag">ZoneConfigManager.setEnabled</span>
+                        </div>
+                    </td>
+                    <td class="meta-info">
+                        <div style="margin-bottom: 12px;">
+                            <span class="label">Called By (Parent):</span>
+                            SMCChartRenderer.js (for OB/FVG boxes), mainV4.js (implied usage for trend zones)
+                        </div>
+                        <div>
+                            <span class="label">Calls External:</span>
+                            CanvasRenderingContext2D methods (fillRect, strokeRect, fillText), LightweightCharts API (timeScale parameters)
+                        </div>
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <div class="file-name">trader.js</div>
+                        <span class="file-loc">js/trader.js</span>
+                    </td>
+                    <td class="desc-text">จัดการระบบเทรดอัตโนมัติ รวมถึงการดำเนินการตามกลยุทธ์ (Fixed/Martingale), การส่งคำสั่งซื้อ, การติดตามสัญญา และการอัปเดตหน้าจอควบคุมการเทรด</td>
+                    <td>
+                        <div class="func-list">
+                            <span class="func-tag">getWebSocket</span><span class="func-tag">DerivTrader.init</span><span class="func-tag">DerivTrader.updateTradingClock</span><span class="func-tag">DerivTrader.loadSavedToken</span><span class="func-tag">DerivTrader.saveToken</span><span class="func-tag">DerivTrader.authorize</span><span class="func-tag">DerivTrader.handleAuthorize</span><span class="func-tag">DerivTrader.updateAuthStatus</span><span class="func-tag">DerivTrader.loadSettings</span><span class="func-tag">DerivTrader.getCurrentStake</span><span class="func-tag">DerivTrader.getAction</span><span class="func-tag">DerivTrader.startTrading</span><span class="func-tag">DerivTrader.stopTrading</span><span class="func-tag">DerivTrader.startEntryCheck</span><span class="func-tag">DerivTrader.checkEntry</span><span class="func-tag">DerivTrader.forceStartTrading</span><span class="func-tag">DerivTrader.executeTrade</span><span class="func-tag">DerivTrader.handleProposal</span><span class="func-tag">DerivTrader.handleBuy</span><span class="func-tag">DerivTrader.subscribeToContract</span><span class="func-tag">DerivTrader.handleContractUpdate</span><span class="func-tag">DerivTrader.renderTrackOrderTable</span><span class="func-tag">DerivTrader.updateTradingStatus</span><span class="func-tag">DerivTrader.updateUI</span><span class="func-tag">DerivTrader.toggleSymbolLock</span><span class="func-tag">DerivTrader.sendTelegram</span><span class="func-tag">DerivTrader.getBalance</span><span class="func-tag">DerivTrader.processTradeResult</span>
+                        </div>
+                    </td>
+                    <td class="meta-info">
+                        <div style="margin-bottom: 12px;">
+                            <span class="label">Called By (Parent):</span>
+                            indexV5.html (UI buttons), mainV4.js (indirectly via shared state/events)
+                        </div>
+                        <div>
+                            <span class="label">Calls External:</span>
+                            getWebSocket, JSON.stringify, localStorage methods, appV4 methods (to access analysis data)
+                        </div>
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <div class="file-name">mainV4.js</div>
+                        <span class="file-loc">js/mainV4.js</span>
+                    </td>
+                    <td class="desc-text">ตัวควบคุมหลักสำหรับแอปพลิเคชัน V4 ทำหน้าที่เริ่มต้นระบบ, จัดการสถานะ, ประสานข้อมูลจาก DerivAPI, ประมวลผลแท่งเทียน, เรียกใช้การวิเคราะห์ต่างๆ (เช่น SMC, Indicators), จัดการแสดงผล Grid และกราฟ, และเชื่อมโยงส่วนประกอบทั้งหมดเข้าด้วยกัน</td>
+                    <td>
+                        <div class="func-list">
+                            <span class="func-tag">appV4.init</span><span class="func-tag">appV4.loadSavedSettings</span><span class="func-tag">appV4.saveSettings</span><span class="func-tag">appV4.handleSmcDisplayToggle</span><span class="func-tag">appV4.loadEmaSettings</span><span class="func-tag">appV4.onConnected</span><span class="func-tag">appV4.syncTime</span><span class="func-tag">appV4.startPolling</span><span class="func-tag">appV4.handleTimeframeChange</span><span class="func-tag">appV4.handleRefreshIntervalChange</span><span class="func-tag">appV4.toggleBeep</span><span class="func-tag">appV4.refreshData</span><span class="func-tag">appV4.onMessage</span><span class="func-tag">appV4.calculateMA</span><span class="func-tag">appV4.processCandles</span><span class="func-tag">appV4.processChartData</span><span class="func-tag">appV4.checkAllDataReceived</span><span class="func-tag">appV4.renderGrid</span><span class="func-tag">appV4.renderSelectedChart</span><span class="func-tag">appV4.generateAnalysisData</span><span class="func-tag">appV4.processAnalysisData</span><span class="func-tag">appV4.updateSelectedChart</span><span class="func-tag">appV4.renderSelectedAnalysis</span><span class="func-tag">appV4.renderMicroArrows</span><span class="func-tag">appV4.appendMicroArrow</span><span class="func-tag">appV4.updateStatus</span><span class="func-tag">appV4.updateClock</span><span class="func-tag">appV4.loadEmaColors</span>
+                        </div>
+                    </td>
+                    <td class="meta-info">
+                        <div style="margin-bottom: 12px;">
+                            <span class="label">Called By (Parent):</span>
+                            indexV5.html (Entry point via script tag/window.onload)
+                        </div>
+                        <div>
+                            <span class="label">Calls External:</span>
+                            DerivAPI.connect/send, Indicators methods, SMCIndicator.calculate, SMCChartRenderer.renderAll, clsMicroTickIndy.setCandles, BackgroundColorZonesPlugin logic, DerivTrader logic (indirectly)
+                        </div>
+                    </td>
+                </tr>
+        
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
